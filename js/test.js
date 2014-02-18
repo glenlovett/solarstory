@@ -1,6 +1,7 @@
 Game.Test = function (game) {
 	this.game = game;
 	this.cursors = null;
+	this.graphics = null;
 	this.player = null;
 	this.startingPos = this.getTileXY(4, 1);
 };
@@ -8,6 +9,7 @@ Game.Test = function (game) {
 Game.Test.prototype = {
 	create: function () {
 		this.cursors = this.game.input.keyboard.createCursorKeys();
+		this.graphics = this.game.add.graphics();
 		this.initMap();
 		this.initPlayer();
 	},
@@ -27,7 +29,6 @@ Game.Test.prototype = {
 			this.player.body.facing = 0;
 			this.player.animations.stop();
 		}
-		this.drawGrid();
 	},
 	initMap: function () {
 		var map = this.game.add.tilemap("test-map");
@@ -58,8 +59,5 @@ Game.Test.prototype = {
 		if (this.player.body.facing !== dirObj.number) {
 			this.player.body.facing = dirObj.number;
 		}
-	},
-	drawGrid: function () {
-		//TODO: draw a grid
 	}
 };

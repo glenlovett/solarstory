@@ -19,8 +19,8 @@ Game.Preloader.prototype = {
 		this.game.load.image("grassland", "assets/img/tiles/grassland.png");
 
 		//show loading bar
-		this.game.add.sprite(this.game.world.width/2-100, this.game.world.height/2, "loadingbar-foreground");
-		var loadBar = this.game.add.sprite(this.game.world.width/2-100, this.game.world.height/2, "loadingbar-background");
+		this.game.add.sprite(this.game.world.width/2-100, this.game.world.height/2, "loadingbar-background");
+		var loadBar = this.game.add.sprite(this.game.world.width/2-100, this.game.world.height/2, "loadingbar-foreground");
 		this.load.setPreloadSprite(loadBar);
 	},
 	create: function () {
