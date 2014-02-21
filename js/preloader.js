@@ -24,6 +24,6 @@ Game.Preloader.prototype = {
 		this.load.setPreloadSprite(loadBar);
 	},
 	create: function () {
-		this.game.state.start("title");
+		this.game.state.start("test");
 	}
 };
