@@ -1,5 +1,8 @@
 Game.Test = function (game) {
-	this.startingPos = this.getTileXY(4, 1);
+  this.playerLoc = {
+    x: 4,
+    y: 1
+  };
 };
 
 Game.Test.prototype = {
@@ -9,7 +12,7 @@ Game.Test.prototype = {
 		this.initPlayer();
 	},
 	update: function () {
-    this.handleArrowKeys();
+    //this.handleArrowKeys();
 	},
 	initMap: function () {
 		this.map = this.game.add.tilemap("test-map");
@@ -17,10 +20,11 @@ Game.Test.prototype = {
 		this.moveLayer = this.map.createLayer("move");
 		this.sceneryLayer = this.map.createLayer("scenery");
 		//TODO: make this work as the grid does???
-    this.map.setCollision([2,3], true, "scenery");
+    //this.map.setCollision([2,3], true, "scenery");
 	},
 	initPlayer: function () {
-		this.player = this.game.add.sprite(this.startingPos.x, this.startingPos.y, "player");
+    var startingPos = this.getXY(this.playerLoc.x, this.playerLoc.y);
+		this.player = this.game.add.sprite(startingPos.x, startingPos.y, "player");
     this.player.inputEnabled = true;
 		this.player.animations.add("walk-down", [1,3]);
 		this.player.animations.add("walk-up", [13,15]);
@@ -30,11 +34,17 @@ Game.Test.prototype = {
 		this.player.body.collideWorldBounds = true;
     this.player.events.onInputUp.add(this.toggleGrid, this);
 	},
-	getTileXY: function (tileX, tileY) {
+	getXY: function (tileX, tileY) {
 		return {
 			x: tileX*Game.TILE_SIZE,
 			y: tileY*Game.TILE_SIZE
 		};
+  },
+  getTilePos: function (x, y) {
+    return {
+      x: x/Game.TILE_SIZE,
+      y: y/Game.TILE_SIZE
+    };
   },
 	movePlayer: function (dirObj) {
 		this.player.body.velocity[dirObj.xy] = dirObj.playerVelocity;
@@ -45,16 +55,49 @@ Game.Test.prototype = {
 	},
 	applyGraphicsToLayer: function (map, layer, layer2, normalFun, overlapFun) {
     var g = this.game.add.graphics(0, 0);
-    var game = this.game;
+    var player = this.player;
+    var isWithin = this.isWithin;
+    var playerLoc = this.playerLoc;
+    var getTilePos = this.getTilePos;
+    //TODO optimize this to look at tiles within player speed, not whole map
     layer.getTiles(0, 0, layer.width, layer.height).forEach(function(tile) {
-      if (map.getTile(tile.x/Game.TILE_SIZE,tile.y/Game.TILE_SIZE,layer2) === null) {
-        normalFun(tile.x, tile.y, g);
+      var tileX = getTilePos(tile.x, tile.y).x;
+      var tileY = getTilePos(tile.x, tile.y).y;
+      if (map.getTile(tileX,tileY,layer2) === null) {
+        if (isWithin(playerLoc.x, playerLoc.y, tileX, tileY, 6)) {
+          normalFun(tile.x, tile.y, g);
+        }
       } else {
-        overlapFun(tile.x, tile.y, g);
+        if (isWithin(playerLoc.x, playerLoc.y, tileX, tileY, 6)) {
+          overlapFun(tile.x, tile.y, g);
+        }
       }
     });
-    return g
+    return g;
 	},
+  isWithin: function (x1, y1, x2, y2, moves) {
+    var stepX = x1;
+    var stepY = y1;
+    for (var movesLeft = moves ; movesLeft >= 0 ; movesLeft--) {
+      if (stepX === x2 && stepY === y2) {
+        return true;
+      }
+      if (Math.abs(stepX - x2) > Math.abs(stepY - y2)) {
+        if (stepX < x2) {
+          stepX = stepX + 1;
+        } else {
+          stepX = stepX - 1;
+        }
+      } else {
+        if (stepY < y2) {
+          stepY = stepY + 1;
+        } else {
+          stepY = stepY - 1;
+        }
+      }
+    }
+    return false;
+  },
   drawGoToShade: function (x, y, graphics) {
     graphics.lineStyle(2, 0x8641E0, 0.4);
     graphics.beginFill(0x8641E0, 0.5);
