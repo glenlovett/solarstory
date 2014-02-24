@@ -1,4 +1,5 @@
 Game.Preloader = function (game) {
+	"use strict";
 	this.preload = function () {
 		game.add.sprite(0, 0, "bg-preloader");
 
