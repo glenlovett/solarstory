@@ -73,7 +73,7 @@ Game.Test = function (game) {
   }
   function initPlayer() {
     var startingPos = getXY(playerLoc.x, playerLoc.y);
-    player = game.add.sprite(startingPos.x, startingPos.y + 20, "player");
+    player = game.add.sprite(startingPos.x, startingPos.y + 22, "player");
     player.inputEnabled = true;
     player.anchor.setTo(0, 1);
     player.animations.add("walk-down", [1,3]);
@@ -107,7 +107,7 @@ Game.Test = function (game) {
   }
   function movePlayerAlongOnPath(tileX, tileY, path) {
     var newPlayerX = getXY(tileX, tileY).x;
-    var newPlayerY = getXY(tileX, tileY).y + 20;
+    var newPlayerY = getXY(tileX, tileY).y + 22;
     player.x = newPlayerX;
     player.y = newPlayerY;
     playerLoc.x = tileX;
@@ -204,19 +204,34 @@ Game.Test = function (game) {
       potentialMove.graphics.destroy();
     }
     var g = game.add.graphics(0, 0);
-    g.lineStyle(2, 0xFF6600, 0.9);
-    g.drawRect(
-      tileX*Game.TILE_SIZE,
-      tileY*Game.TILE_SIZE,
-      Game.TILE_SIZE,
-      Game.TILE_SIZE);
+    g.lineStyle(2, 0xE68A00, 0.5);
+    g.beginFill(0xE68A00, 1);
+    // g.drawRect(
+    //   tileX*Game.TILE_SIZE,
+    //   tileY*Game.TILE_SIZE,
+    //   Game.TILE_SIZE,
+    //   Game.TILE_SIZE);
+    g.drawCircle(tileX*Game.TILE_SIZE + Game.TILE_SIZE/2,
+      tileY*Game.TILE_SIZE + Game.TILE_SIZE/2,
+      Game.TILE_SIZE / 8);
     g.endFill();
+    drawPath(g, path);
     potentialMove = {
       x: tileX,
       y: tileY,
       graphics: g,
       path: path
     };
+  }
+  function drawPath(g, path) {
+    g.lineStyle(2, 0xE68A00, 0.9);
+    g.x = path[0].x*Game.TILE_SIZE + Game.TILE_SIZE/2;
+    g.y = path[0].y*Game.TILE_SIZE + Game.TILE_SIZE/2;
+    path.forEach(function(point) {
+      g.lineTo(point.x*Game.TILE_SIZE + Game.TILE_SIZE/2, point.y*Game.TILE_SIZE + Game.TILE_SIZE/2);
+    });
+    g.x = 0;
+    g.y = 0;
   }
   function toggleMoveGrid() {
     if (moveGridGraphics === undefined) {
