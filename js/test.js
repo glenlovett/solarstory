@@ -36,7 +36,10 @@ Game.Test = function (game) {
     moveLayer.events.onInputUp.add(handleMapClick);
   }
   function initPlayer() {
-    player = game.add.sprite(playerLoc.x*Game.TILE_SIZE, playerLoc.y*Game.TILE_SIZE + Game.PLAYER_OFFSET, "player");
+    player = game.add.sprite(
+      toPixels(playerLoc.x),
+      toPixels(playerLoc.y) + Game.PLAYER_OFFSET,
+      "player");
     player.inputEnabled = true;
     player.anchor.setTo(0, 1);
     player.animations.add("walk-down", [1,3]);
@@ -84,30 +87,30 @@ Game.Test = function (game) {
   function animateMoveOnPath(path) {
     if (path.length > 0) {
       moving = true;
-      moveGridGraphics.destroy();
+      if (moveGridGraphics !== undefined) {
+        moveGridGraphics.destroy();
+        moveGridGraphics = undefined;
+      }
       animateMoveStep(path[0].x, path[0].y, path);
     } else { // we're done moving..
       player.body.facing = 0;
       player.animations.stop();
-      moveGridGraphics = createMoveGrid(map, moveLayer, highSceneryLayer);
-      moveGridGraphics.visible = false;
-      relayer();
       moving = false;
       return undefined;
     }
   }
   function animateMoveStep(tileX, tileY, path) {
     var dirObj;
-    if (player.x > tileX*Game.TILE_SIZE) {
+    if (player.x > toPixels(tileX)) {
       dirObj = Game.DIR_MAP.left;
       player.x -= 2;
-    } else if (player.x < tileX*Game.TILE_SIZE) {
+    } else if (player.x < toPixels(tileX)) {
       dirObj = Game.DIR_MAP.right;
       player.x += 2;
-    } else if (player.y - Game.PLAYER_OFFSET > tileY*Game.TILE_SIZE) {
+    } else if (player.y - Game.PLAYER_OFFSET > toPixels(tileY)) {
       dirObj = Game.DIR_MAP.up;
       player.y -= 2;
-    } else if (player.y - Game.PLAYER_OFFSET < tileY*Game.TILE_SIZE) {
+    } else if (player.y - Game.PLAYER_OFFSET < toPixels(tileY)) {
       dirObj = Game.DIR_MAP.down;
       player.y += 2;
     } else { //We got to our destination
@@ -125,14 +128,13 @@ Game.Test = function (game) {
       animateMoveStep(tileX, tileY, path);
     }, 30);
   }
-  function createMoveGrid(map, layer, layer2) {
+  function createMoveGrid(layer, layer2) {
     var g = game.add.graphics(0, 0);
-    //TODO: possibly optimize this to look at tiles within player speed, not whole map
+    //TODO: look at tiles within player speed, not whole map
     layer.getTiles(0, 0, layer.width, layer.height).forEach(function(tile) {
-      var tileX = tile.x/Game.TILE_SIZE;
-      var tileY = tile.y/Game.TILE_SIZE;
-      var isPlayerPos = (tileX === playerLoc.x && tileY === playerLoc.y);
-      if (!isPlayerPos) {
+      var tileX = toTile(tile.x);
+      var tileY = toTile(tile.y);
+      if (!isPlayerPos(tileX, tileY)) {
         if (map.getTile(tileX,tileY,layer2) === null) {
           drawGoToShade(tileX, tileY, g, false);
         } else {
@@ -155,8 +157,8 @@ Game.Test = function (game) {
           graphics.beginFill(0x66A3C2, 0.5);
         }
         graphics.drawRect(
-          x*Game.TILE_SIZE,
-          y*Game.TILE_SIZE,
+          toPixels(x),
+          toPixels(y),
           Game.TILE_SIZE,
           Game.TILE_SIZE);
         graphics.endFill();
@@ -164,9 +166,13 @@ Game.Test = function (game) {
     });
   }
   function handleMapClick(){
-    if (moveGridGraphics !== undefined && moveGridGraphics.visible && moving === false) {
-      var tileX = Math.floor(game.input.x / Game.TILE_SIZE);
-      var tileY = Math.floor(game.input.y / Game.TILE_SIZE);
+    var mapClickValid = (
+      moveGridGraphics !== undefined &&
+      moveGridGraphics.visible &&
+      moving === false);
+    if (mapClickValid) {
+      var tileX = Math.floor(toTile(game.input.x));
+      var tileY = Math.floor(toTile(game.input.y));
       if (potentialMove !== undefined) {
         if (tileX === potentialMove.x && tileY === potentialMove.y) {
           //legal move selected. move along path and return true
@@ -176,43 +182,47 @@ Game.Test = function (game) {
           return true;
         }
       }
-      // otherwise determine if we have a legal move to present. if so, present it
+      // otherwise determine if we have a legal move to present
       easystar.findPath(playerLoc.x, playerLoc.y, tileX, tileY,
         function(path) {
-          var isPlayerPos = (tileX === playerLoc.x && tileY === playerLoc.y);
-          if (path !== null && path.length <= Game.PLAYER_MOVES + 1 && !isPlayerPos) {
-            presentLegalMoveTo(tileX, tileY, path);
+          if (path !== null && path.length <= Game.PLAYER_MOVES + 1 && !isPlayerPos(tileX, tileY)) {
+            presentLegalMove(path);
           }
         });
       easystar.calculate();
     }
   }
   //show a move to the user for confirmation
-  function presentLegalMoveTo(tileX, tileY, path) {
+  function presentLegalMove(path) {
+    var destX = path[path.length - 1].x;
+    var destY = path[path.length - 1].y;
+    var g = game.add.graphics(0, 0);
     if (potentialMove !== undefined) {
       potentialMove.graphics.destroy();
     }
-    var g = game.add.graphics(0, 0);
     g.lineStyle(2, 0xE68A00, 0.5);
     g.beginFill(0xE68A00, 1);
-    g.drawCircle(tileX*Game.TILE_SIZE + Game.TILE_SIZE/2,
-      tileY*Game.TILE_SIZE + Game.TILE_SIZE/2,
+    g.drawCircle(
+      toPixels(destX) + Game.TILE_SIZE/2,
+      toPixels(destY) + Game.TILE_SIZE/2,
       Game.TILE_SIZE / 8);
     g.endFill();
     drawPath(g, path);
     potentialMove = {
-      x: tileX,
-      y: tileY,
+      x: destX,
+      y: destY,
       graphics: g,
       path: path
     };
   }
   function drawPath(g, path) {
     g.lineStyle(2, 0xE68A00, 0.9);
-    g.x = path[0].x*Game.TILE_SIZE + Game.TILE_SIZE/2;
-    g.y = path[0].y*Game.TILE_SIZE + Game.TILE_SIZE/2;
+    g.x = toPixels(path[0].x) + Game.TILE_SIZE/2;
+    g.y = toPixels(path[0].y) + Game.TILE_SIZE/2;
     path.forEach(function(point) {
-      g.lineTo(point.x*Game.TILE_SIZE + Game.TILE_SIZE/2, point.y*Game.TILE_SIZE + Game.TILE_SIZE/2);
+      g.lineTo(
+        toPixels(point.x) + Game.TILE_SIZE/2,
+        toPixels(point.y) + Game.TILE_SIZE/2);
     });
     g.x = 0;
     g.y = 0;
@@ -220,12 +230,21 @@ Game.Test = function (game) {
   function handlePlayerClick() {
     if (moving === false) {
       if (moveGridGraphics === undefined) {
-        moveGridGraphics = createMoveGrid(map, moveLayer, highSceneryLayer);
+        moveGridGraphics = createMoveGrid(moveLayer, highSceneryLayer);
       } else {
         moveGridGraphics.visible = !moveGridGraphics.visible;
       }
       relayer();
     }
+  }
+  function isPlayerPos(x, y) {
+    return x === playerLoc.x && y === playerLoc.y;
+  }
+  function toPixels(x) {
+    return x * Game.TILE_SIZE;
+  }
+  function toTile(x) {
+    return x / Game.TILE_SIZE;
   }
   function relayer() {
     //TODO: make this not have to be called. it obscures the
