@@ -233,6 +233,10 @@ Game.Test = function (game) {
         moveGridGraphics = createMoveGrid(moveLayer, highSceneryLayer);
       } else {
         moveGridGraphics.visible = !moveGridGraphics.visible;
+        if (potentialMove !== undefined) {
+          potentialMove.graphics.destroy();
+          potentialMove = undefined;
+        }
       }
       relayer();
     }
