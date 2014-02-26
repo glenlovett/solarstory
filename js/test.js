@@ -6,7 +6,7 @@ Game.Test = function (game) {
     y: 2
   };
   var freeMoveEnabled = false;
-  var cursors;
+  var moving = false;
   var map;
   var moveLayer;
   var sceneryLayer;
@@ -17,12 +17,10 @@ Game.Test = function (game) {
   var potentialMove;
 
   this.create = function () {
-    cursors = game.input.keyboard.createCursorKeys();
     initMap();
     initPlayer();
   };
   this.update = function () {
-    handleArrowKeys();
   };
   function initMap() {
     map = game.add.tilemap("test-map");
@@ -32,10 +30,22 @@ Game.Test = function (game) {
     moveLayer.inputEnabled = true;
     map.addTilesetImage("grassland");
     map.setCollision([2,3], true, "scenery");
-    moveLayer.events.onInputUp.add(handleMapClick);
     var gridAndIndices = getGridAndIndices(moveLayer);
     easystar.setGrid(gridAndIndices.grid);
     easystar.setAcceptableTiles(gridAndIndices.indices);
+    moveLayer.events.onInputUp.add(handleMapClick);
+  }
+  function initPlayer() {
+    player = game.add.sprite(playerLoc.x*Game.TILE_SIZE, playerLoc.y*Game.TILE_SIZE + Game.PLAYER_OFFSET, "player");
+    player.inputEnabled = true;
+    player.anchor.setTo(0, 1);
+    player.animations.add("walk-down", [1,3]);
+    player.animations.add("walk-up", [13,15]);
+    player.animations.add("walk-left", [5,7]);
+    player.animations.add("walk-right", [9,11]);
+    player.body.setRectangle(28, 16, 2, 32);
+    player.body.collideWorldBounds = true;
+    player.events.onInputUp.add(handlePlayerClick);
   }
   function getGridAndIndices(layer) {
     var grid = [];
@@ -71,58 +81,56 @@ Game.Test = function (game) {
       indices: indices
     };
   }
-  function initPlayer() {
-    var startingPos = getXY(playerLoc.x, playerLoc.y);
-    player = game.add.sprite(startingPos.x, startingPos.y + 22, "player");
-    player.inputEnabled = true;
-    player.anchor.setTo(0, 1);
-    player.animations.add("walk-down", [1,3]);
-    player.animations.add("walk-up", [13,15]);
-    player.animations.add("walk-left", [5,7]);
-    player.animations.add("walk-right", [9,11]);
-    player.body.setRectangle(28, 16, 2, 32);
-    player.body.collideWorldBounds = true;
-    player.events.onInputUp.add(toggleMoveGrid);
-  }
-  function getXY(tileX, tileY) {
-    return {
-      x: tileX*Game.TILE_SIZE,
-      y: tileY*Game.TILE_SIZE
-    };
-  }
-  function getTilePos(x, y) {
-    return {
-      x: x/Game.TILE_SIZE,
-      y: y/Game.TILE_SIZE
-    };
-  }
-  function movePlayer(dirObj) {
-    if (freeMoveEnabled) {
-      player.body.velocity[dirObj.xy] = dirObj.playerVelocity;
-      player.animations.play("walk-"+dirObj.string, 4, false);
-      if (player.body.facing !== dirObj.number) {
-        player.body.facing = dirObj.number;
-      }
+  function animateMoveOnPath(path) {
+    if (path.length > 0) {
+      moving = true;
+      moveGridGraphics.destroy();
+      animateMoveStep(path[0].x, path[0].y, path);
+    } else { // we're done moving..
+      player.body.facing = 0;
+      player.animations.stop();
+      moveGridGraphics = createMoveGrid(map, moveLayer, highSceneryLayer);
+      moveGridGraphics.visible = false;
+      relayer();
+      moving = false;
+      return undefined;
     }
   }
-  function movePlayerAlongOnPath(tileX, tileY, path) {
-    var newPlayerX = getXY(tileX, tileY).x;
-    var newPlayerY = getXY(tileX, tileY).y + 22;
-    player.x = newPlayerX;
-    player.y = newPlayerY;
-    playerLoc.x = tileX;
-    playerLoc.y = tileY;
-    moveGridGraphics.destroy();
-    moveGridGraphics = createMoveGrid(map, moveLayer, highSceneryLayer);
-    moveGridGraphics.visible = false;
-    redisplay();
+  function animateMoveStep(tileX, tileY, path) {
+    var dirObj;
+    if (player.x > tileX*Game.TILE_SIZE) {
+      dirObj = Game.DIR_MAP.left;
+      player.x -= 2;
+    } else if (player.x < tileX*Game.TILE_SIZE) {
+      dirObj = Game.DIR_MAP.right;
+      player.x += 2;
+    } else if (player.y - Game.PLAYER_OFFSET > tileY*Game.TILE_SIZE) {
+      dirObj = Game.DIR_MAP.up;
+      player.y -= 2;
+    } else if (player.y - Game.PLAYER_OFFSET < tileY*Game.TILE_SIZE) {
+      dirObj = Game.DIR_MAP.down;
+      player.y += 2;
+    } else { //We got to our destination
+      path.shift();
+      playerLoc.x = tileX;
+      playerLoc.y = tileY;
+      animateMoveOnPath(path);
+      return undefined;
+    }
+    if (player.body.facing !== dirObj.number) {
+      player.animations.play("walk-"+dirObj.string, 4, true);
+      player.body.facing = dirObj.number;
+    }
+    setTimeout(function() {
+      animateMoveStep(tileX, tileY, path);
+    }, 30);
   }
   function createMoveGrid(map, layer, layer2) {
     var g = game.add.graphics(0, 0);
-    //TODO optimize this to look at tiles within player speed, not whole map
+    //TODO: possibly optimize this to look at tiles within player speed, not whole map
     layer.getTiles(0, 0, layer.width, layer.height).forEach(function(tile) {
-      var tileX = getTilePos(tile.x, tile.y).x;
-      var tileY = getTilePos(tile.x, tile.y).y;
+      var tileX = tile.x/Game.TILE_SIZE;
+      var tileY = tile.y/Game.TILE_SIZE;
       var isPlayerPos = (tileX === playerLoc.x && tileY === playerLoc.y);
       if (!isPlayerPos) {
         if (map.getTile(tileX,tileY,layer2) === null) {
@@ -155,39 +163,20 @@ Game.Test = function (game) {
       }
     });
   }
-  function handleArrowKeys() {
-    player.body.velocity.y = 0;
-    player.body.velocity.x = 0;
-    game.physics.collide(player, sceneryLayer);
-    game.physics.collide(player, highSceneryLayer);
-    if (cursors.up.isDown) {
-      movePlayer(Game.DIR_MAP.up);
-    } else if (cursors.down.isDown) {
-      movePlayer(Game.DIR_MAP.down);
-    } else if (cursors.left.isDown) {
-      movePlayer(Game.DIR_MAP.left);
-    } else if (cursors.right.isDown) {
-      movePlayer(Game.DIR_MAP.right);
-    } else {
-      player.body.facing = 0;
-      player.animations.stop();
-    }
-  }
   function handleMapClick(){
-    if (moveGridGraphics !== undefined && moveGridGraphics.visible) {
-      var tileX = Math.floor(getTilePos(game.input.x, game.input.y).x);
-      var tileY = Math.floor(getTilePos(game.input.x, game.input.y).y);
+    if (moveGridGraphics !== undefined && moveGridGraphics.visible && moving === false) {
+      var tileX = Math.floor(game.input.x / Game.TILE_SIZE);
+      var tileY = Math.floor(game.input.y / Game.TILE_SIZE);
       if (potentialMove !== undefined) {
         if (tileX === potentialMove.x && tileY === potentialMove.y) {
-          if (potentialMove !== undefined) {
-            potentialMove.graphics.destroy();
-          }
-          //legal move selected. move along path and return.
-          movePlayerAlongOnPath(tileX, tileY, potentialMove.path);
+          //legal move selected. move along path and return true
+          animateMoveOnPath(potentialMove.path);
+          potentialMove.graphics.destroy();
+          potentialMove = undefined;
           return true;
         }
       }
-      //determine if we have a legal move to present. if so, present it
+      // otherwise determine if we have a legal move to present. if so, present it
       easystar.findPath(playerLoc.x, playerLoc.y, tileX, tileY,
         function(path) {
           var isPlayerPos = (tileX === playerLoc.x && tileY === playerLoc.y);
@@ -206,11 +195,6 @@ Game.Test = function (game) {
     var g = game.add.graphics(0, 0);
     g.lineStyle(2, 0xE68A00, 0.5);
     g.beginFill(0xE68A00, 1);
-    // g.drawRect(
-    //   tileX*Game.TILE_SIZE,
-    //   tileY*Game.TILE_SIZE,
-    //   Game.TILE_SIZE,
-    //   Game.TILE_SIZE);
     g.drawCircle(tileX*Game.TILE_SIZE + Game.TILE_SIZE/2,
       tileY*Game.TILE_SIZE + Game.TILE_SIZE/2,
       Game.TILE_SIZE / 8);
@@ -233,19 +217,17 @@ Game.Test = function (game) {
     g.x = 0;
     g.y = 0;
   }
-  function toggleMoveGrid() {
-    if (moveGridGraphics === undefined) {
-      moveGridGraphics = createMoveGrid(map, moveLayer, highSceneryLayer);
-    } else {
-      moveGridGraphics.visible = !moveGridGraphics.visible;
-      if (potentialMove !== undefined) {
-        potentialMove.graphics.destroy();
-        potentialMove = undefined;
+  function handlePlayerClick() {
+    if (moving === false) {
+      if (moveGridGraphics === undefined) {
+        moveGridGraphics = createMoveGrid(map, moveLayer, highSceneryLayer);
+      } else {
+        moveGridGraphics.visible = !moveGridGraphics.visible;
       }
+      relayer();
     }
-    redisplay();
   }
-  function redisplay() {
+  function relayer() {
     //TODO: make this not have to be called. it obscures the
     //hidden parts of the moveGridGraphics
     sceneryLayer.bringToTop();
