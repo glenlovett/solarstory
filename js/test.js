@@ -11,6 +11,7 @@ Game.Test = function(game) {
   var sceneryLayer;
   var highSceneryLayer;
   var player;
+  var enemies = [];
   var moveGrid;
   var moveGridGraphics;
   var potentialMove;
@@ -18,6 +19,7 @@ Game.Test = function(game) {
   this.create = function() {
     initMap();
     initPlayer();
+    initEnemies();
   };
   this.update = function() {};
 
@@ -49,6 +51,21 @@ Game.Test = function(game) {
     player.body.setRectangle(28, 16, 2, 32);
     player.body.collideWorldBounds = true;
     player.events.onInputUp.add(handlePlayerClick);
+  }
+
+  function initEnemies() {
+    var x = 5;
+    var y = 3;
+    easystar.avoidAdditionalPoint(x, y);
+    var sprite = game.add.sprite(
+      toPixels(x),
+      toPixels(y),
+      "enemy-ghost");
+    enemies.push({
+      sprite: sprite,
+      x: x,
+      y: y
+    });
   }
 
   function getGridAndIndices(layer) {
@@ -138,7 +155,7 @@ Game.Test = function(game) {
     layer.getTiles(0, 0, layer.width, layer.height).forEach(function(tile) {
       var tileX = toTile(tile.x);
       var tileY = toTile(tile.y);
-      if (!isPlayerPos(tileX, tileY)) {
+      if (!isPlayerPos(tileX, tileY) && !isEnemy(tileX, tileY)) {
         if (map.getTile(tileX, tileY, layer2) === null) {
           drawGoToShade(tileX, tileY, g, false);
         } else {
@@ -192,7 +209,7 @@ Game.Test = function(game) {
       easystar.findPath(playerLoc.x, playerLoc.y, tileX, tileY,
         function(path) {
           if (path !== null && path.length <= Game.PLAYER_MOVES + 1 && !
-            isPlayerPos(tileX, tileY)) {
+            isPlayerPos(tileX, tileY) && !isEnemy(tileX, tileY)) {
             presentLegalMove(path);
           }
         });
@@ -249,6 +266,16 @@ Game.Test = function(game) {
       }
       relayer();
     }
+  }
+
+  function isEnemy(x, y) {
+    var result = false;
+    enemies.forEach(function(enemy){
+      if (x === enemy.x && y === enemy.y) {
+        result = true;
+      }
+    });
+    return result;
   }
 
   function isPlayerPos(x, y) {

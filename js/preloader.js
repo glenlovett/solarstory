@@ -13,6 +13,10 @@ Game.Preloader = function(game) {
       32, 48);
     game.load.image("player-shadow", "assets/img/title/title.png");
 
+    //load ememies
+    game.load.image("enemy-ghost",
+      "assets/img/monsters/ghost.png");
+
     //load test map
     game.load.tilemap("test-map", "assets/maps/grassland.json", null, Phaser.Tilemap
       .TILED_JSON);

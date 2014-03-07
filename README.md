@@ -8,4 +8,5 @@ I am making this game to learn the library as well as hopefully have a fun littl
 * Programming - Glen Lovett
 * Art - Glen Lovett
 * Player Sprites: http://www.mmorpgmakerxb.com/p/characters-sprites-generator
+* Monster Sprites by David E. Gervais: http://pousse.rapiere.free.fr/tome/
 * Clouds II Photoshop Brushes by redheadstock: http://www.obsidiandawn.com/
