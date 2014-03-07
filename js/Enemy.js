@@ -1,30 +1,32 @@
-var Enemy = function (_x, _y, _sprite) {
+define(function () {
   "use strict";
-  var x = _x;
-  var y = _y;
-  var sprite = _sprite;
+  return function (_x, _y, _sprite) {
+    var x = _x;
+    var y = _y;
+    var sprite = _sprite;
 
-  this.setX = function (num) {
-    x = num;
-  };
+    this.setX = function (num) {
+      x = num;
+    };
 
-  this.getX = function () {
-    return x;
-  };
+    this.getX = function () {
+      return x;
+    };
 
-  this.setY = function (num) {
-    y = num;
-  };
+    this.setY = function (num) {
+      y = num;
+    };
 
-  this.getY = function () {
-    return y;
-  };
+    this.getY = function () {
+      return y;
+    };
 
-  this.setX = function (sprite) {
-    sprite = sprite;
-  };
+    this.setSprite = function (sprite) {
+      sprite = sprite;
+    };
 
-  this.getX = function () {
-    return sprite;
+    this.getSprite = function () {
+      return sprite;
+    };
   };
-};
+});

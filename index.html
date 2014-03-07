@@ -3,43 +3,8 @@
     <head>
         <meta charset="utf-8">
         <title>Solar Story</title>
-        <style>
-            body {
-                margin: 0;
-                padding: 0;
-                background-color: #000000;
-            }
-            #gameDiv {
-                width: 320px;
-                margin: 70px auto;
-            }
-            #footer {
-                position: absolute;
-                bottom: 10px;
-                margin: 0px auto;
-                text-align: center;
-                width: 100%;
-            }
-            #notice {
-                color: #339999;
-            }
-            #sourceLink {
-                display: inline-block;
-                text-decoration: none;
-                color: #339999;
-            }
-            #sourceLink:visited {
-                color: #339999;
-                text-decoration: none;
-            }
-        </style>
-        <script type="text/javascript" src="js/phaser.js"></script>
-        <script type="text/javascript" src="js/easystar.min.js"></script>
-        <script type="text/javascript" src="js/underscore.min.js"></script>
-        <script type="text/javascript" src="js/boot.js"></script>
-        <script type="text/javascript" src="js/preloader.js"></script>
-        <script type="text/javascript" src="js/title.js"></script>
-        <script type="text/javascript" src="js/test.js"></script>
+        <link rel="stylesheet" href="assets/style.css">
+        <script type="text/javascript" src="js/lib/require.js" data-main="js/app"></script>
     </head>
     <body>
         <div id="gameDiv"></div>
@@ -48,13 +13,4 @@
           <a id="sourceLink" href="https://github.com/glenlovett/solarstory">View source on Github</a>
         </div>
     </body>
-    <script type="text/javascript">
-        (function () {
-            var game = new Phaser.Game(320, 320, Phaser.AUTO, "gameDiv");
-            game.state.add("boot", Game.Boot, true);
-            game.state.add("preloader", Game.Preloader);
-            game.state.add("title", Game.Title);
-            game.state.add("test", Game.Test);
-        })();
-    </script>
 </html>
