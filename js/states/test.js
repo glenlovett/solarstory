@@ -1,14 +1,11 @@
 define([
   "globals",
-  "Enemy"
-], function (globals, Enemy) {
+  "Enemy",
+  "Player"
+], function (globals, Enemy, Player) {
   "use strict";
   return function(game) {
     var easystar = new EasyStar.js();
-    var playerLoc = {
-      x: 4,
-      y: 2
-    };
     var moving = false;
     var map;
     var moveLayer;
@@ -20,15 +17,15 @@ define([
     var moveGridGraphics;
     var potentialMove;
 
-    this.create = function() {
-      initMap();
+    this.create = function(mapData) {
+      initMap(mapData);
       initPlayer();
       initEnemies();
     };
     this.update = function() {};
 
     function initMap() {
-      map = game.add.tilemap("test-map");
+      map = game.add.tilemap(mapData.tileMapName);
       moveLayer = map.createLayer("move");
       sceneryLayer = map.createLayer("scenery");
       highSceneryLayer = map.createLayer("high-scenery");
@@ -42,30 +39,16 @@ define([
     }
 
     function initPlayer() {
-      player = game.add.sprite(
-        toPixels(playerLoc.x),
-        toPixels(playerLoc.y) + globals.PLAYER_OFFSET,
-        "player");
-      player.inputEnabled = true;
-      player.anchor.setTo(0, 1);
-      player.animations.add("walk-down", [1, 3]);
-      player.animations.add("walk-up", [13, 15]);
-      player.animations.add("walk-left", [5, 7]);
-      player.animations.add("walk-right", [9, 11]);
-      player.body.setRectangle(28, 16, 2, 32);
-      player.body.collideWorldBounds = true;
-      player.events.onInputUp.add(handlePlayerClick);
+      //TODO: abstract
+      player = new Player(4, 2, "player", game);
+      player.sprite.events.onInputUp.add(handlePlayerClick);
     }
 
     function initEnemies() {
       var x = 5;
       var y = 3;
       easystar.avoidAdditionalPoint(x, y);
-      var sprite = game.add.sprite(
-        toPixels(x),
-        toPixels(y),
-        "enemy-ghost");
-      var enemy = new Enemy(x, y, sprite);
+      var enemy = new Enemy(x, y, "enemy-ghost", game);
       enemies.push(enemy);
     }
 
@@ -113,8 +96,8 @@ define([
         }
         animateMoveStep(path[0].x, path[0].y, path);
       } else { // we're done moving..
-        player.body.facing = 0;
-        player.animations.stop();
+        player.sprite.body.facing = 0;
+        player.sprite.animations.stop();
         moving = false;
         return undefined;
       }
@@ -122,46 +105,41 @@ define([
 
     function animateMoveStep(tileX, tileY, path) {
       var dirObj;
-      if (player.x > toPixels(tileX)) {
+      if (player.sprite.x > toPixels(tileX)) {
         dirObj = globals.DIR_MAP.left;
-        player.x -= 2;
-      } else if (player.x < toPixels(tileX)) {
+        player.sprite.x -= 2;
+      } else if (player.sprite.x < toPixels(tileX)) {
         dirObj = globals.DIR_MAP.right;
-        player.x += 2;
-      } else if (player.y - globals.PLAYER_OFFSET > toPixels(tileY)) {
+        player.sprite.x += 2;
+      } else if (player.sprite.y > toPixels(tileY)) {
         dirObj = globals.DIR_MAP.up;
-        player.y -= 2;
-      } else if (player.y - globals.PLAYER_OFFSET < toPixels(tileY)) {
+        player.sprite.y -= 2;
+      } else if (player.sprite.y < toPixels(tileY)) {
         dirObj = globals.DIR_MAP.down;
-        player.y += 2;
+        player.sprite.y += 2;
       } else { //We got to our destination
         path.shift();
-        playerLoc.x = tileX;
-        playerLoc.y = tileY;
+        player.setPos(tileX, tileY);
         animateMoveOnPath(path);
         return undefined;
       }
-      if (player.body.facing !== dirObj.number) {
-        player.animations.play("walk-" + dirObj.string, 4, true);
-        player.body.facing = dirObj.number;
+      if (player.sprite.body.facing !== dirObj.number) {
+        player.sprite.animations.play("walk-" + dirObj.string, 4, true);
+        player.sprite.body.facing = dirObj.number;
       }
       setTimeout(function() {
         animateMoveStep(tileX, tileY, path);
       }, 30);
     }
 
-    function createMoveGrid(layer, layer2) {
+    function createMoveGrid(layer) {
       var g = game.add.graphics(0, 0);
       //TODO: look at tiles within player speed, not whole map
       layer.getTiles(0, 0, layer.width, layer.height).forEach(function(tile) {
         var tileX = toTile(tile.x);
         var tileY = toTile(tile.y);
         if (!isPlayerPos(tileX, tileY) && !isEnemy(tileX, tileY)) {
-          if (map.getTile(tileX, tileY, layer2) === null) {
-            drawGoToShade(tileX, tileY, g, false);
-          } else {
-            drawGoToShade(tileX, tileY, g, true);
-          }
+          drawGoToShade(tileX, tileY, g);
         }
       });
       easystar.calculate();
@@ -169,16 +147,11 @@ define([
       return g;
     }
 
-    function drawGoToShade(x, y, graphics, obscured) {
-      easystar.findPath(playerLoc.x, playerLoc.y, x, y, function(path) {
+    function drawGoToShade(x, y, graphics) {
+      easystar.findPath(player.x, player.y, x, y, function(path) {
         if (path !== null && path.length <= globals.PLAYER_MOVES + 1) {
-          if (obscured) {
-            graphics.lineStyle(2, 0x66A3C2, 0.4);
-            graphics.beginFill(0x66A3C2, 0.3);
-          } else {
-            graphics.lineStyle(2, 0x66A3C2, 0.6);
-            graphics.beginFill(0x66A3C2, 0.5);
-          }
+          graphics.lineStyle(2, 0x66A3C2, 0.4);
+          graphics.beginFill(0x66A3C2, 0.3);
           graphics.drawRect(
             toPixels(x),
             toPixels(y),
@@ -207,7 +180,7 @@ define([
           }
         }
         // otherwise determine if we have a legal move to present
-        easystar.findPath(playerLoc.x, playerLoc.y, tileX, tileY,
+        easystar.findPath(player.x, player.y, tileX, tileY,
           function(path) {
             if (path !== null && path.length <= globals.PLAYER_MOVES + 1 && !
               isPlayerPos(tileX, tileY) && !isEnemy(tileX, tileY)) {
@@ -272,7 +245,7 @@ define([
     function isEnemy(x, y) {
       var result = false;
       enemies.forEach(function(enemy){
-        if (x === enemy.getX() && y === enemy.getY()) {
+        if (x === enemy.x && y === enemy.y) {
           result = true;
         }
       });
@@ -280,7 +253,7 @@ define([
     }
 
     function isPlayerPos(x, y) {
-      return x === playerLoc.x && y === playerLoc.y;
+      return x === player.x && y === player.y;
     }
 
     function toPixels(x) {
@@ -295,7 +268,7 @@ define([
       //TODO: make this not have to be called. it obscures the
       //hidden parts of the moveGridGraphics
       sceneryLayer.bringToTop();
-      player.bringToTop();
+      player.sprite.bringToTop();
       highSceneryLayer.bringToTop();
     }
   };
