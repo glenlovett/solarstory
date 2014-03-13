@@ -1,6 +1,8 @@
 define(function () {
   "use strict";
   return {
+    moving: false,
+    moveGridGraphics: undefined,
     TILE_SIZE: 32,
     PLAYER_SPEED: 150,
     PLAYER_MOVES: 5,
