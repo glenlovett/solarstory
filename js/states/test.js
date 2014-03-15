@@ -21,6 +21,7 @@ define([
       initMap();
       initPlayer();
       initEnemies();
+      easystar.setGrid(moveGrid);
     };
     this.update = function() {};
 
@@ -38,15 +39,16 @@ define([
     }
 
     function initPlayer() {
-      //TODO: abstract
-      player = new Player(4, 2, "player", game);
+      var x = 4;
+      var y = 2;
+      player = new Player(x, y, "player", game);
+      moveGrid[y][x] = 0;
       player.sprite.events.onInputUp.add(handlePlayerClick);
     }
 
     function initEnemies() {
       var x = 5;
       var y = 3;
-      easystar.avoidAdditionalPoint(x, y);
       moveGrid[y][x] = 0;
       var enemy = new Enemy(x, y, "enemy-ghost", game);
       enemies.push(enemy);
@@ -94,7 +96,15 @@ define([
             //legal move selected. move along path and return true
             player.animateMoveOnPath(potentialMove.path);
             potentialMove.graphics.destroy();
+            debugger;
             potentialMove = undefined;
+            //TODO:trigger enemy turn asynchronysly
+            enemies[0].animateMoveOnPath(
+            [
+              {x:5, y:3},
+              {x:6, y:3},
+              {x:6, y:4}
+            ]);
             return true;
           }
         }
