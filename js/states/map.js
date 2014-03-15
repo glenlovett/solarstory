@@ -96,9 +96,8 @@ define([
             //legal move selected. move along path and return true
             player.animateMoveOnPath(potentialMove.path);
             potentialMove.graphics.destroy();
-            debugger;
             potentialMove = undefined;
-            //TODO:trigger enemy turn asynchronysly
+            //TODO:  http://stackoverflow.com/questions/9121902/call-an-asynchronous-javascript-function-synchronously
             enemies[0].animateMoveOnPath(
             [
               {x:5, y:3},
@@ -172,7 +171,7 @@ define([
     }
 
     function occupiedByEnemy(x, y) {
-      return _.some(enemies, function(enemy){return enemy.isAtPos(x, y)});
+      return _.some(enemies, function(enemy){return enemy.isAtPos(x, y);});
     }
 
     function relayer() {

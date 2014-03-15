@@ -14,7 +14,7 @@ define(function() {
     };
 
     function startGame() {
-      game.state.start("test");
+      game.state.start("map");
     }
   };
 });
