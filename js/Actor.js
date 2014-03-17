@@ -20,19 +20,12 @@ define([
   };
   
   Actor.prototype.animateMoveOnPath = function(path) {
-    if (path.length > 0) {
-      globals.moving = true;
-      if (globals.moveGridGraphics !== undefined) {
-        globals.moveGridGraphics.destroy();
-        globals.moveGridGraphics = undefined;
-      }
-      this.animateMoveStep(path[0].x, path[0].y, path);
-    } else { // we're done moving..
-      this.sprite.body.facing = 0;
-      this.sprite.animations.stop();
-      globals.moving = false;
-      return undefined;
+    globals.moving = true;
+    if (globals.moveGridGraphics !== undefined) {
+      globals.moveGridGraphics.destroy();
+      globals.moveGridGraphics = undefined;
     }
+    this.animateMoveStep(path[0].x, path[0].y, path);
   };
 
   Actor.prototype.animateMoveStep = function(tileX, tileY, path) {
@@ -50,10 +43,18 @@ define([
     } else if (this.sprite.y < helpers.toPixels(tileY)) {
       dirObj = globals.DIR_MAP.down;
       this.sprite.y += 2;
-    } else { //We got to our destination
+    } else { //We got to our final destination
+      var destX = path[path.length - 1].x;
+      var destY = path[path.length - 1].y;
       path.shift();
-      this.setPos(tileX, tileY);
-      this.animateMoveOnPath(path);
+      if (path.length === 0) {
+        this.sprite.body.facing = 0;
+        this.sprite.animations.stop();
+        this.setPos(destX, destY);
+        globals.moving = false;
+      } else { //We got to our partial destination
+        this.animateMoveOnPath(path);
+      }
       return undefined;
     }
     if (this.sprite.body.facing !== dirObj.number) {
