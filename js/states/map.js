@@ -7,11 +7,12 @@ define([
 ], function (globals, helpers, Enemy, Player, _) {
   "use strict";
   return function(game) {
+    var self = this;
     var easystar = new EasyStar.js();
     var map;
     var moveLayer;
-    var sceneryLayer;
-    var highSceneryLayer;
+    this.sceneryLayer = undefined;
+    this.highSceneryLayer = undefined;
     var player;
     var enemies = [];
     var moveGrid;
@@ -28,8 +29,8 @@ define([
     function initMap() {
       map = game.add.tilemap("test-map");
       moveLayer = map.createLayer("move");
-      sceneryLayer = map.createLayer("scenery");
-      highSceneryLayer = map.createLayer("high-scenery");
+      self.sceneryLayer = map.createLayer("scenery");
+      self.highSceneryLayer = map.createLayer("high-scenery");
       moveLayer.inputEnabled = true;
       map.addTilesetImage("grassland");
       moveGrid = helpers.generateGridAndIndices(moveLayer);
@@ -41,23 +42,23 @@ define([
     function initPlayer() {
       var x = 4;
       var y = 2;
-      player = new Player(x, y, "player", game);
+      player = new Player(x, y, self, "player", game);
       moveGrid[y][x] = 0;
-      player.sprite.events.onInputUp.add(handlePlayerClick);
     }
 
     function initEnemies() {
       var x = 5;
       var y = 3;
       moveGrid[y][x] = 0;
-      var enemy = new Enemy(x, y, "enemy-ghost", game);
+      var enemy = new Enemy(x, y, self, "enemy-ghost", game);
       enemies.push(enemy);
     }
 
-    function createMoveGrid(layer) {
+    //TODO: move to player
+    this.createMoveGrid = function() {
       var g = game.add.graphics(0, 0);
       //TODO: look at tiles within player speed, not whole map
-      layer.getTiles(0, 0, layer.width, layer.height).forEach(function(tile) {
+      moveLayer.getTiles(0, 0, moveLayer.width, moveLayer.height).forEach(function(tile) {
         var tileX = helpers.toTile(tile.x);
         var tileY = helpers.toTile(tile.y);
         if (!player.isAtPos(tileX, tileY) && !occupiedByEnemy(tileX, tileY)) {
@@ -66,8 +67,9 @@ define([
       });
       easystar.calculate();
       return g;
-    }
+    };
 
+    //TODO: move to helpers
     function drawGoToShade(x, y, graphics) {
       easystar.findPath(player.x, player.y, x, y, function(path) {
         if (path !== null && path.length <= globals.PLAYER_MOVES + 1) {
@@ -83,6 +85,15 @@ define([
       });
     }
 
+    function moveEnemies(){
+      enemies[0].animateMoveOnPath(
+      [
+        {x:5, y:3},
+        {x:6, y:3},
+        {x:6, y:4}
+      ]);
+    }
+
     function handleMapClick() {
       var mapClickValid = (
         globals.moveGridGraphics !== undefined &&
@@ -94,16 +105,9 @@ define([
         if (potentialMove !== undefined) {
           if (tileX === potentialMove.x && tileY === potentialMove.y) {
             //legal move selected. move along path and return true
-            player.animateMoveOnPath(potentialMove.path);
+            player.animateMoveOnPath(potentialMove.path, moveEnemies, self);
             potentialMove.graphics.destroy();
             potentialMove = undefined;
-            //TODO:  http://stackoverflow.com/questions/9121902/call-an-asynchronous-javascript-function-synchronously
-            enemies[0].animateMoveOnPath(
-            [
-              {x:5, y:3},
-              {x:6, y:3},
-              {x:6, y:4}
-            ]);
             return true;
           }
         }
@@ -118,6 +122,7 @@ define([
         easystar.calculate();
       }
     }
+    //TODO: move to player. make potentialMove a member of player.
     //show a move to the user for confirmation
     function presentLegalMove(path) {
       var destX = path[path.length - 1].x;
@@ -142,6 +147,7 @@ define([
       };
     }
 
+    //TODO: move to helpers
     function drawPath(g, path) {
       g.lineStyle(2, 0xE68A00, 0.9);
       g.x = helpers.toPixels(path[0].x) + globals.TILE_SIZE / 2;
@@ -155,31 +161,8 @@ define([
       g.y = 0;
     }
 
-    function handlePlayerClick() {
-      if (globals.moving === false) {
-        if (globals.moveGridGraphics === undefined) {
-          globals.moveGridGraphics = createMoveGrid(moveLayer);
-        } else {
-          globals.moveGridGraphics.visible = !globals.moveGridGraphics.visible;
-          if (potentialMove !== undefined) {
-            potentialMove.graphics.destroy();
-            potentialMove = undefined;
-          }
-        }
-        relayer();
-      }
-    }
-
     function occupiedByEnemy(x, y) {
       return _.some(enemies, function(enemy){return enemy.isAtPos(x, y);});
-    }
-
-    function relayer() {
-      //TODO: make this not have to be called. it obscures the
-      //hidden parts of the globals.moveGridGraphics
-      sceneryLayer.bringToTop();
-      player.sprite.bringToTop();
-      highSceneryLayer.bringToTop();
     }
   };
 });
