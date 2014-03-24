@@ -21,6 +21,7 @@ define([
   };
   
   Actor.prototype.animateMoveOnPath = function(path, callback, context) {
+    this.map.moveGrid[this.y][this.x] = 1;
     globals.moving = true;
     if (globals.moveGridGraphics !== undefined) {
       globals.moveGridGraphics.destroy();

@@ -6,7 +6,7 @@ require.config({
     "boot": "states/boot",
     "preloader": "states/preloader",
     "title": "states/title",
-    "map": "states/map",
+    "map": "states/map"
   }
 });
 require([
