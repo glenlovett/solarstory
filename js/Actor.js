@@ -3,14 +3,16 @@ define([
   "helpers"
 ], function(globals, helpers) {
   "use strict";
-  var Actor = function(_x, _y, _map, spriteName, game) {
+  var Actor = function(_x, _y, _stats, _map, spriteName, game) {
     this.x = _x;
     this.y = _y;
+    this.stats = _stats;
     this.map = _map;
     this.sprite = game.add.sprite(
       _x * globals.TILE_SIZE,
       _y * globals.TILE_SIZE,
       spriteName);
+    this.moving = false;
   };
 
   Actor.prototype.setPos = function(_x, _y) {
@@ -22,11 +24,7 @@ define([
   
   Actor.prototype.animateMoveOnPath = function(path, callback, context) {
     this.map.moveGrid[this.y][this.x] = 1;
-    globals.moving = true;
-    if (globals.moveGridGraphics !== undefined) {
-      globals.moveGridGraphics.destroy();
-      globals.moveGridGraphics = undefined;
-    }
+    this.moving = true;
     this.animateMoveStep(path[0].x, path[0].y, path, callback, context);
   };
 
@@ -53,7 +51,7 @@ define([
         this.sprite.body.facing = 0;
         this.sprite.animations.stop();
         this.setPos(destX, destY);
-        globals.moving = false;
+        this.moving = false;
         if (callback !== undefined) callback.call(context);
       } else { //We got to our partial destination
         this.animateMoveOnPath(path, callback, context);

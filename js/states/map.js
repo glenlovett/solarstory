@@ -40,25 +40,28 @@ define([
       self.moveGrid = helpers.generateGridAndIndices(self.moveLayer);
       self.easystar.setGrid(self.moveGrid);
       self.easystar.setAcceptableTiles([1]);
-      self.moveLayer.events.onInputUp.add(handleClick);
+      self.moveLayer.events.onInputUp.add(handleMapClick);
     }
 
     function initPlayer() {
       var x = 4;
       var y = 2;
-      player = new Player(x, y, self, "player", game);
       self.moveGrid[y][x] = 0;
+      self.easystar.setGrid(self.moveGrid);
+      player = new Player(x, y, {speed:5}, self, "player", game);
     }
 
     function initEnemies() {
       var x = 5;
       var y = 3;
       self.moveGrid[y][x] = 0;
-      var enemy = new Enemy(x, y, self, "enemy-ghost", game);
+      self.easystar.setGrid(self.moveGrid);
+      var enemy = new Enemy(x, y, {speed:2}, self, "enemy-ghost", game);
       enemies.push(enemy);
     }
 
     function moveEnemies(){
+      var enemyPath = enemies[0].getPartialPathTo(player.x, player.y);
       // enemies[0].animateMoveOnPath(
       // [
       //   {x:5, y:3},
@@ -67,32 +70,35 @@ define([
       // ]);
     }
 
-    function handleClick() {
+    function handleMapClick() {
       var mapClickValid = (
-        globals.moveGridGraphics !== undefined &&
-        globals.moveGridGraphics.visible &&
-        globals.moving === false);
+        player.moveGridGraphics !== undefined &&
+        player.moveGridGraphics.visible &&
+        player.moving === false);
       if (mapClickValid) {
         var tileX = Math.floor(helpers.toTile(game.input.x));
         var tileY = Math.floor(helpers.toTile(game.input.y));
         if (player.potentialMove !== undefined) {
-          if (tileX ===  player.potentialMove.x && tileY ===  player.potentialMove.y) {
+          if (tileX === player.potentialMove.x && tileY === player.potentialMove.y) {
             //legal move selected. move along path and return true
+            if (player.moveGridGraphics !== undefined) {
+              player.moveGridGraphics.destroy();
+              player.moveGridGraphics = undefined;
+            }
             player.animateMoveOnPath( player.potentialMove.path, moveEnemies, self);
             player.potentialMove.graphics.destroy();
             player.potentialMove = undefined;
-            return true;
           }
+        } else {
+          // otherwise determine if we have a legal move to present
+          self.easystar.findPath(player.x, player.y, tileX, tileY,
+            function(path) {
+              if (path !== null && path.length <= player.stats.speed + 1 && path.length > 0) {
+                player.presentLegalMove(path);
+              }
+            });
+          self.easystar.calculate();
         }
-        // otherwise determine if we have a legal move to present
-        self.easystar.findPath(player.x, player.y, tileX, tileY,
-          function(path) {
-            if (path !== null && path.length <= globals.PLAYER_MOVES + 1 && !
-              player.isAtPos(tileX, tileY) && !self.hasEnemyAt(tileX, tileY)) {
-              player.presentLegalMove(path);
-            }
-          });
-        self.easystar.calculate();
       }
     }
   };

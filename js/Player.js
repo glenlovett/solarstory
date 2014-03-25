@@ -4,10 +4,11 @@ define([
   "globals"
 ], function(Actor, helpers, globals) {
   "use strict";
-  var Player = function(_x, _y, _map, spriteName, game) {
-    Player.parentConstructor.call(this, _x, _y, _map, spriteName, game);
+  var Player = function(_x, _y, _stats, _map, spriteName, game) {
+    Player.parentConstructor.call(this, _x, _y, _stats, _map, spriteName, game);
     var self = this;
     this.potentialMove = undefined;
+    this.moveGridGraphics = undefined;
     this.sprite.inputEnabled = true;
     this.sprite.anchor.setTo(0, 0.5);
     this.sprite.animations.add("walk-down", [1, 3]);
@@ -18,14 +19,14 @@ define([
     this.sprite.body.collideWorldBounds = true;
 
     this.handlePlayerClick = function() {
-      if (globals.moving === false) {
-        if (globals.moveGridGraphics === undefined) {
-          globals.moveGridGraphics = createMoveGrid();
+      if (this.moving === false) {
+        if (this.moveGridGraphics === undefined) {
+          this.moveGridGraphics = createMoveGrid();
         } else {
-          globals.moveGridGraphics.visible = !globals.moveGridGraphics.visible;
-          if (this.map.potentialMove !== undefined) {
-            this.map.potentialMove.graphics.destroy();
-            this.map.potentialMove = undefined;
+          this.moveGridGraphics.visible = !this.moveGridGraphics.visible;
+          if (this.potentialMove !== undefined) {
+            this.potentialMove.graphics.destroy();
+            this.potentialMove = undefined;
           }
         }
         relayer();
@@ -63,7 +64,7 @@ define([
       self.map.moveLayer.getTiles(0, 0, self.map.moveLayer.width, self.map.moveLayer.height).forEach(function(tile) {
         var tileX = helpers.toTile(tile.x);
         var tileY = helpers.toTile(tile.y);
-        if (!self.isAtPos(tileX, tileY) && !self.map.hasEnemyAt(tileX, tileY)) {
+        if (!self.isAtPos(tileX, tileY)) {
           drawGoToShade(tileX, tileY, g);
         }
       });
@@ -73,7 +74,7 @@ define([
 
     function drawGoToShade(x, y, graphics) {
       self.map.easystar.findPath(self.x, self.y, x, y, function(path) {
-        if (path !== null && path.length <= globals.PLAYER_MOVES + 1) {
+        if (path !== null && path.length <= self.stats.speed + 1 && path.length > 0) {
           graphics.lineStyle(2, 0x66A3C2, 0.4);
           graphics.beginFill(0x66A3C2, 0.3);
           graphics.drawRect(
@@ -88,7 +89,7 @@ define([
 
     function relayer() {
       //TODO: make this not have to be called. it obscures the
-      //hidden parts of the globals.moveGridGraphics
+      //hidden parts of the moveGridGraphics :(
       self.map.sceneryLayer.bringToTop();
       self.sprite.bringToTop();
       self.map.highSceneryLayer.bringToTop();
