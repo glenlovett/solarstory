@@ -1,0 +1,21 @@
+{
+  "libs": [
+    "browser",
+    "jquery",
+    "underscore"
+  ],
+  "plugins": {
+    "requirejs": {
+      "baseURL": "./js/",
+      "paths": {
+        "EasyStar": "lib/easystar.min",
+        "underscore": "lib/underscore.min",
+        "Phaser": "lib/phaser",
+        "boot": "states/boot",
+        "preloader": "states/preloader",
+        "title": "states/title",
+        "map": "states/map"
+      }
+    }
+  }
+}

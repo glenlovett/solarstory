@@ -20,7 +20,7 @@ define([
 
   helpers.toTile = function(x) {
     return x / globals.TILE_SIZE;
-  }
+  };
   
   helpers.generateGridAndIndices = function(layer) {
       var grid = [];
@@ -39,8 +39,21 @@ define([
         columnIndex = 0;
         rowIndex = rowIndex + 1;
       });
-      return grid
-    }
+      return grid;
+    };
+
+  helpers.drawPath = function(g, path) {
+    g.lineStyle(2, 0xE68A00, 0.9);
+    g.x = helpers.toPixels(path[0].x) + globals.TILE_SIZE / 2;
+    g.y = helpers.toPixels(path[0].y) + globals.TILE_SIZE / 2;
+    path.forEach(function(point) {
+      g.lineTo(
+        helpers.toPixels(point.x) + globals.TILE_SIZE / 2,
+        helpers.toPixels(point.y) + globals.TILE_SIZE / 2);
+    });
+    g.x = 0;
+    g.y = 0;
+  };
   
   return helpers;
 });
