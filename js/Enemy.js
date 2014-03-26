@@ -9,8 +9,36 @@ define([
 
   helpers.extend(Enemy, Actor);
 
-  Enemy.prototype.getPartialPathTo = function(_x, _y) {
-    console.log("todo");
+  Enemy.prototype.moveTowards = function(targetX, targetY) {
+    var self = this;
+    var potentialDestinations = self.map.moveLayer.getTiles(0, 0, self.map.moveLayer.width, self.map.moveLayer.height);
+    var pathsChecked = 0;
+    var bestPath = [];
+    var closestDistance = Infinity;
+    potentialDestinations.forEach(function(tile) {
+      var tileX = helpers.toTile(tile.x);
+      var tileY = helpers.toTile(tile.y);
+      checkPathTo(tileX, tileY);
+    });
+    function checkPathTo(x, y){
+      self.map.easystar.findPath(self.x, self.y, x, y, function(path) {
+        pathsChecked = pathsChecked + 1;
+        if (path !== null && path.length <= self.stats.speed + 1) {
+          //TODO: refactor distance formula into helpers
+          var possibleX = path.length > 0 ? path[path.length-1].x : self.x;
+          var possibleY = path.length > 0 ? path[path.length-1].y : self.y;
+          var distanceToTarget = Math.sqrt((possibleX - targetX) * (possibleX - targetX) + (possibleY - targetY) * (possibleY - targetY));
+          if (distanceToTarget < closestDistance) {
+            bestPath = path;
+            closestDistance = distanceToTarget;
+          }
+        }
+        if (pathsChecked === potentialDestinations.length - 1) {
+          self.animateMoveOnPath(bestPath);
+        }
+      });
+    }
+    self.map.easystar.calculate();
   };
 
   return Enemy;

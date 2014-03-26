@@ -12,6 +12,8 @@ define([
       _x * globals.TILE_SIZE,
       _y * globals.TILE_SIZE,
       spriteName);
+    this.map.moveGrid[_y][_x] = 0;
+    this.map.easystar.setGrid(this.map.moveGrid);
     this.moving = false;
   };
 
@@ -20,12 +22,20 @@ define([
     this.y = _y;
     this.sprite.x = _x * globals.TILE_SIZE;
     this.sprite.y = _y * globals.TILE_SIZE;
+    this.map.moveGrid[_y][_x] = 0;
+    this.map.easystar.setGrid(this.map.moveGrid);
   };
   
   Actor.prototype.animateMoveOnPath = function(path, callback, context) {
     this.map.moveGrid[this.y][this.x] = 1;
     this.moving = true;
-    this.animateMoveStep(path[0].x, path[0].y, path, callback, context);
+    if (path.length > 0) {
+      this.animateMoveStep(path[0].x, path[0].y, path, callback, context);
+    } else {
+      this.moving = false;
+      this.setPos(this.x, this.y);
+      if (callback !== undefined) callback.call(context);
+    }
   };
 
   Actor.prototype.animateMoveStep = function(tileX, tileY, path, callback, context) {

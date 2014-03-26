@@ -2,9 +2,8 @@ define([
   "globals",
   "helpers",
   "Enemy",
-  "Player",
-  "underscore"
-], function (globals, helpers, Enemy, Player, _) {
+  "Player"
+], function (globals, helpers, Enemy, Player) {
   "use strict";
   return function(game) {
     this.easystar = new EasyStar.js();
@@ -26,10 +25,6 @@ define([
 
     this.update = function() {};
 
-    this.hasEnemyAt = function(x, y) {
-      return _.some(enemies, function(enemy){return enemy.isAtPos(x, y);});
-    };
-
     function initMap() {
       var map = game.add.tilemap("test-map");
       self.moveLayer = map.createLayer("move");
@@ -44,30 +39,21 @@ define([
     }
 
     function initPlayer() {
-      var x = 4;
-      var y = 2;
-      self.moveGrid[y][x] = 0;
-      self.easystar.setGrid(self.moveGrid);
-      player = new Player(x, y, {speed:5}, self, "player", game);
+      player = new Player(4, 2, {speed:5}, self, "player", game);
     }
 
     function initEnemies() {
-      var x = 5;
-      var y = 3;
-      self.moveGrid[y][x] = 0;
-      self.easystar.setGrid(self.moveGrid);
-      var enemy = new Enemy(x, y, {speed:2}, self, "enemy-ghost", game);
+      var enemy = new Enemy(5, 3, {speed:2}, self, "enemy-ghost", game);
+      var enemy2 = new Enemy(3, 6, {speed:2}, self, "enemy-ghost", game);
       enemies.push(enemy);
+      enemies.push(enemy2);
     }
 
+    //TODO: block player movement while enemies move
     function moveEnemies(){
-      var enemyPath = enemies[0].getPartialPathTo(player.x, player.y);
-      // enemies[0].animateMoveOnPath(
-      // [
-      //   {x:5, y:3},
-      //   {x:6, y:3},
-      //   {x:6, y:4}
-      // ]);
+      enemies.forEach(function(enemy){
+        enemy.moveTowards(player.x, player.y);
+      });
     }
 
     function handleMapClick() {
@@ -81,24 +67,21 @@ define([
         if (player.potentialMove !== undefined) {
           if (tileX === player.potentialMove.x && tileY === player.potentialMove.y) {
             //legal move selected. move along path and return true
-            if (player.moveGridGraphics !== undefined) {
-              player.moveGridGraphics.destroy();
-              player.moveGridGraphics = undefined;
-            }
-            player.animateMoveOnPath( player.potentialMove.path, moveEnemies, self);
+            player.animateMoveOnPath(player.potentialMove.path, moveEnemies, self);
+            player.moveGridGraphics.destroy();
             player.potentialMove.graphics.destroy();
-            player.potentialMove = undefined;
+            player.moveGridGraphics = player.potentialMove = undefined;
+            return;
           }
-        } else {
-          // otherwise determine if we have a legal move to present
-          self.easystar.findPath(player.x, player.y, tileX, tileY,
-            function(path) {
-              if (path !== null && path.length <= player.stats.speed + 1 && path.length > 0) {
-                player.presentLegalMove(path);
-              }
-            });
-          self.easystar.calculate();
         }
+        // determine if we have a legal move to present
+        self.easystar.findPath(player.x, player.y, tileX, tileY,
+          function(path) {
+            if (path !== null && path.length <= player.stats.speed + 1 && path.length > 0) {
+              player.presentLegalMove(path);
+            }
+          });
+        self.easystar.calculate();
       }
     }
   };
