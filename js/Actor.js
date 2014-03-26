@@ -27,13 +27,12 @@ define([
   };
   
   Actor.prototype.animateMoveOnPath = function(path, callback, context) {
-    this.map.moveGrid[this.y][this.x] = 1;
-    this.moving = true;
     if (path.length > 0) {
+      this.map.moveGrid[this.y][this.x] = 1;
+      this.map.moveGrid[path[path.length - 1].y][path[path.length - 1].x] = 0;
+      this.moving = true;
       this.animateMoveStep(path[0].x, path[0].y, path, callback, context);
     } else {
-      this.moving = false;
-      this.setPos(this.x, this.y);
       if (callback !== undefined) callback.call(context);
     }
   };

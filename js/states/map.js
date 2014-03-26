@@ -50,6 +50,7 @@ define([
     }
 
     //TODO: block player movement while enemies move
+    // and prevent enemy overlap
     function moveEnemies(){
       enemies.forEach(function(enemy){
         enemy.moveTowards(player.x, player.y);
