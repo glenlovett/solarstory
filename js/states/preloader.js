@@ -20,7 +20,7 @@ define([
 
       //load ememies
       game.load.image("enemy-ghost",
-        "assets/img/monsters/ghost.png");
+        "assets/img/monsters/ghost.PNG");
 
       //load test map
       game.load.tilemap("test-map", "assets/maps/grassland.json", null,
