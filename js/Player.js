@@ -22,13 +22,14 @@ define([
       if (this.moving === false) {
         if (this.moveGridGraphics === undefined) {
           this.moveGridGraphics = createMoveGrid();
+          this.removePotentialAttack();
+        } else if (this.moveGridGraphics.visible) {
+          this.moveGridGraphics.visible = false;
         } else {
-          this.moveGridGraphics.visible = !this.moveGridGraphics.visible;
-          if (this.potentialMove !== undefined) {
-            this.potentialMove.graphics.destroy();
-            this.potentialMove = undefined;
-          }
+          this.moveGridGraphics.visible = true;
+          this.removePotentialAttack();
         }
+        this.removePotentialMove();
         relayer();
       }
     };
@@ -58,31 +59,48 @@ define([
       };
     };
 
+    this.presentLegalAttack = function(x, y) {
+      var graphics = game.add.graphics(0, 0);
+      helpers.drawShadedSquare(x, y, 0xC63333, graphics);
+      this.potentialAttack = {
+        x: x,
+        y: y,
+        graphics: graphics
+      };
+    };
+
+    this.removePotentialMove = function() {
+      if (this.potentialMove !== undefined) {
+        this.potentialMove.graphics.destroy();
+        this.potentialMove = undefined;
+      }
+    };
+
+    this.removePotentialAttack = function() {
+      if (this.potentialAttack !== undefined) {
+        this.potentialAttack.graphics.destroy();
+        this.potentialAttack = undefined;
+      }
+    };
+
     function createMoveGrid() {
-      var g = game.add.graphics(0, 0);
+      var graphics = game.add.graphics(0, 0);
       //TODO: look at tiles within player speed, not whole map
       self.map.moveLayer.getTiles(0, 0, self.map.moveLayer.width, self.map.moveLayer.height).forEach(function(tile) {
         var tileX = helpers.toTile(tile.x);
         var tileY = helpers.toTile(tile.y);
         if (!self.isAtPos(tileX, tileY)) {
-          drawGoToShade(tileX, tileY, g);
+          drawGoToShade(tileX, tileY, graphics);
         }
       });
       self.map.easystar.calculate();
-      return g;
+      return graphics;
     }
 
     function drawGoToShade(x, y, graphics) {
       self.map.easystar.findPath(self.x, self.y, x, y, function(path) {
         if (path !== null && path.length <= self.stats.speed + 1 && path.length > 0) {
-          graphics.lineStyle(2, 0x66A3C2, 0.4);
-          graphics.beginFill(0x66A3C2, 0.3);
-          graphics.drawRect(
-            helpers.toPixels(x),
-            helpers.toPixels(y),
-            globals.TILE_SIZE,
-            globals.TILE_SIZE);
-          graphics.endFill();
+          helpers.drawShadedSquare(x, y, 0x66A3C2, graphics);
         }
       });
     }

@@ -79,6 +79,12 @@ define([
   Actor.prototype.isAtPos = function(tileX, tileY) {
     return tileX === this.x && tileY === this.y;
   };
+
+  Actor.prototype.withinAttackRange = function(x, y) {
+    //is directly up down left or right of the actor
+    return (this.x === x && (this.y === y - 1 || this.y === y + 1)||
+            this.y === y && (this.x === x - 1 || this.x === x + 1));
+  };
   
   return Actor;
 });

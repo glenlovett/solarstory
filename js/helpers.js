@@ -54,6 +54,17 @@ define([
     g.x = 0;
     g.y = 0;
   };
+
+  helpers.drawShadedSquare = function(x, y, color, graphics) {
+    graphics.lineStyle(2, color, 0.4);
+    graphics.beginFill(color, 0.3);
+    graphics.drawRect(
+      helpers.toPixels(x),
+      helpers.toPixels(y),
+      globals.TILE_SIZE,
+      globals.TILE_SIZE);
+    graphics.endFill();
+  };
   
   return helpers;
 });

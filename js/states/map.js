@@ -2,8 +2,9 @@ define([
   "globals",
   "helpers",
   "Enemy",
-  "Player"
-], function (globals, helpers, Enemy, Player) {
+  "Player",
+  "underscore"
+], function (globals, helpers, Enemy, Player, _) {
   "use strict";
   return function(game) {
     this.easystar = new EasyStar.js();
@@ -49,6 +50,10 @@ define([
       enemies.push(enemy2);
     }
 
+    function enemyAt(x, y) {
+      return _.some(enemies, function(enemy){return enemy.isAtPos(x, y);});
+    }
+
     //TODO: block player movement while enemies move
     // and prevent enemy overlap
     function moveEnemies(){
@@ -58,13 +63,26 @@ define([
     }
 
     function handleMapClick() {
-      var mapClickValid = (
+      var playerMoveGridVisible = (
         player.moveGridGraphics !== undefined &&
-        player.moveGridGraphics.visible &&
-        player.moving === false);
-      if (mapClickValid) {
-        var tileX = Math.floor(helpers.toTile(game.input.x));
-        var tileY = Math.floor(helpers.toTile(game.input.y));
+        player.moveGridGraphics.visible);
+      var tileX = Math.floor(helpers.toTile(game.input.x));
+      var tileY = Math.floor(helpers.toTile(game.input.y));
+      if (player.potentialAttack === undefined && enemyAt(tileX, tileY) && player.withinAttackRange(tileX, tileY)) {
+        if (playerMoveGridVisible) {
+          player.moveGridGraphics.visible = false;
+        }
+        player.removePotentialMove();
+        player.presentLegalAttack(tileX, tileY);
+      } else if (enemyAt(tileX, tileY) && player.withinAttackRange(tileX, tileY)) {
+        if (tileX === player.potentialAttack.x && tileY === player.potentialAttack.y) {
+          //todo: attack
+          console.log("attack!");
+        } else {
+          player.removePotentialAttack();
+          player.presentLegalAttack(tileX, tileY);
+        }
+      } else if (playerMoveGridVisible) {
         if (player.potentialMove !== undefined) {
           if (tileX === player.potentialMove.x && tileY === player.potentialMove.y) {
             //legal move selected. move along path and return true
