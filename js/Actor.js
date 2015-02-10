@@ -86,5 +86,21 @@ define([
       this.y === y && (this.x === x - 1 || this.x === x + 1));
   };
 
+  Actor.prototype.attack = function (x, y) {
+    //TODO: dont assume a player attacking an enemy
+    var actor = this.map.getEnemyAt(x, y);
+    //TODO: turn self to face actor
+    //TODO: update UI to show damage
+    //TODO: apply damage from actor1 to actor
+    //TODO: destroy actor only if damage dealt reduces HP to 0
+    actor.kill();
+  };
+
+  Actor.prototype.kill = function () {
+    //TODO: dont assume an enemy
+    this.map.destroyEnemyAt(this.x, this.y);
+    this.map.moveGrid[this.y][this.x] = 1;
+  };
+
   return Actor;
 });

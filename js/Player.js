@@ -4,7 +4,7 @@ define([
   "globals"
 ], function (Actor, helpers, globals) {
   "use strict";
-  var Player = function (_x, _y, _stats, _map, spriteName, game) {
+  var Player = function Player (_x, _y, _stats, _map, spriteName, game) {
     Player.parentConstructor.call(this, _x, _y, _stats, _map, spriteName, game);
     var self = this;
     this.potentialMove = undefined;
@@ -18,13 +18,10 @@ define([
 
     this.handlePlayerClick = function () {
       if (this.moving === false) {
-        if (this.moveGridGraphics === undefined) {
-          this.moveGridGraphics = createMoveGrid();
-          this.removePotentialAttack();
-        } else if (this.moveGridGraphics.visible) {
+        if (this.moveGridGraphics && this.moveGridGraphics.visible) {
           this.moveGridGraphics.visible = false;
         } else {
-          this.moveGridGraphics.visible = true;
+          this.moveGridGraphics = createMoveGrid();
           this.removePotentialAttack();
         }
         this.removePotentialMove();
@@ -83,8 +80,14 @@ define([
 
     function createMoveGrid() {
       var graphics = game.add.graphics(0, 0);
-      //TODO: look at tiles within player speed, not whole map
-      self.map.moveLayer.getTiles(0, 0, self.map.moveLayer.width, self.map.moveLayer.height).forEach(function (tile) {
+      var speedInPixels = helpers.toPixels(self.stats.speed + 1);
+      var xInPixels = helpers.toPixels(self.x);
+      var yInPixels = helpers.toPixels(self.y);
+      var x1 = Math.max(0, xInPixels - speedInPixels);
+      var y1 = Math.max(0, yInPixels - speedInPixels);
+      var x2 = Math.min(self.map.moveLayer.width, xInPixels + speedInPixels);
+      var y2 = Math.min(self.map.moveLayer.width, yInPixels + speedInPixels);
+      self.map.moveLayer.getTiles(x1, y1, x2, y2).forEach(function (tile) {
         if (!self.isAtPos(tile.x, tile.y)) {
           drawGoToShade(tile.x, tile.y, graphics);
         }
@@ -95,7 +98,7 @@ define([
 
     function drawGoToShade(x, y, graphics) {
       self.map.easystar.findPath(self.x, self.y, x, y, function (path) {
-        if (path !== null && path.length <= self.stats.speed + 1 && path.length > 0) {
+        if (path !== null && path.length <= self.stats.speed + 1) {
           helpers.drawShadedSquare(x, y, 0x66A3C2, graphics);
         }
       });

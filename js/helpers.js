@@ -44,14 +44,14 @@ define([
 
   helpers.drawPath = function (g, path) {
     g.lineStyle(2, 0xE68A00, 0.9);
-    var x = helpers.toPixels(path[0].x) + globals.TILE_SIZE / 2;
-    var y = helpers.toPixels(path[0].y) + globals.TILE_SIZE / 2;
-    g.moveTo(x, y);
+    var startX = helpers.toPixels(path[0].x) + globals.TILE_SIZE / 2;
+    var startY = helpers.toPixels(path[0].y) + globals.TILE_SIZE / 2;
+    g.moveTo(startX, startY);
     path.forEach(function (point) {
-      g.lineTo(
-        helpers.toPixels(point.x) + globals.TILE_SIZE / 2,
-        helpers.toPixels(point.y) + globals.TILE_SIZE / 2);
-      g.moveTo(helpers.toPixels(point.x) + globals.TILE_SIZE / 2, helpers.toPixels(point.y) + globals.TILE_SIZE / 2);
+      var x = helpers.toPixels(point.x) + globals.TILE_SIZE / 2;
+      var y = helpers.toPixels(point.y) + globals.TILE_SIZE / 2;
+      g.lineTo(x,y);
+      g.moveTo(x,y);
     });
     g.moveTo(0, 0);
   };

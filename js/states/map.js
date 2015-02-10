@@ -26,6 +26,28 @@ define([
 
     this.update = function () {};
 
+    this.getEnemyAt = function (x, y) {
+      var returnEnemy;
+      enemies.forEach(function (enemy) {
+        if (enemy.isAtPos(x, y)) {
+          returnEnemy = enemy;
+        }
+      });
+      return returnEnemy;
+    };
+
+    this.destroyEnemyAt = function (x, y) {
+      var enemy = this.getEnemyAt(x, y);
+      var enemyIndex = 0;
+      enemy.sprite.destroy();
+      enemies.forEach(function (enemy) {
+        if (enemy.isAtPos(x, y)) {
+          enemies.splice(enemyIndex, 1);
+        }
+        enemyIndex = enemyIndex + 1;
+      });
+    };
+
     function initMap() {
       var map = game.add.tilemap("test-map");
       self.moveLayer = map.createLayer("move");
@@ -76,16 +98,16 @@ define([
         player.moveGridGraphics.visible);
       var tileX = Math.floor(helpers.toTile(game.input.x));
       var tileY = Math.floor(helpers.toTile(game.input.y));
-      if (player.potentialAttack === undefined && enemyAt(tileX, tileY) && player.withinAttackRange(tileX, tileY)) {
+      if (!player.moving && player.potentialAttack === undefined && enemyAt(tileX, tileY) && player.withinAttackRange(tileX, tileY)) {
         if (playerMoveGridVisible) {
           player.moveGridGraphics.visible = false;
         }
         player.removePotentialMove();
         player.presentLegalAttack(tileX, tileY);
-      } else if (enemyAt(tileX, tileY) && player.withinAttackRange(tileX, tileY)) {
+      } else if (!player.moving && enemyAt(tileX, tileY) && player.withinAttackRange(tileX, tileY)) {
         if (tileX === player.potentialAttack.x && tileY === player.potentialAttack.y) {
-          //todo: attack
-          console.log("attack!");
+          player.removePotentialAttack();
+          player.attack(tileX, tileY);
         } else {
           player.removePotentialAttack();
           player.presentLegalAttack(tileX, tileY);
