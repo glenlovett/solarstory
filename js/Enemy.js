@@ -16,9 +16,7 @@ define([
     var bestPath = [];
     var closestDistance = Infinity;
     potentialDestinations.forEach(function (tile) {
-      var tileX = helpers.toTile(tile.x);
-      var tileY = helpers.toTile(tile.y);
-      checkPathTo(tileX, tileY);
+      checkPathTo(tile.x, tile.y);
     });
 
     function checkPathTo(x, y) {

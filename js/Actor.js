@@ -57,7 +57,7 @@ define([
       var destY = path[path.length - 1].y;
       path.shift();
       if (path.length === 0) { //We got to our final destination
-        this.sprite.body.facing = 0;
+        this.sprite.facing = 0;
         this.sprite.animations.stop();
         this.setPos(destX, destY);
         this.moving = false;
@@ -67,9 +67,9 @@ define([
       }
       return undefined;
     }
-    if (this.sprite.body.facing !== dirObj.number) {
+    if (this.sprite.facing !== dirObj.number) {
       this.sprite.animations.play("walk-" + dirObj.string, 4, true);
-      this.sprite.body.facing = dirObj.number;
+      this.sprite.facing = dirObj.number;
     }
     setTimeout(function () {
       self.animateMoveStep(tileX, tileY, path, callback, context);

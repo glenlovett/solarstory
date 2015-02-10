@@ -53,6 +53,29 @@
             },
          "spacing":0,
          "tileheight":32,
+         "tileproperties":
+            {
+             "12":
+                {
+                 "walk":"true"
+                },
+             "13":
+                {
+                 "walk":"true"
+                },
+             "4":
+                {
+                 "walk":"true"
+                },
+             "8":
+                {
+                 "walk":"true"
+                },
+             "9":
+                {
+                 "walk":"true"
+                }
+            },
          "tilewidth":32
         }],
  "tilewidth":32,

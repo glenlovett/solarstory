@@ -15,8 +15,7 @@ define([
       game.load.image("player-shadow", "assets/img/title/title.png");
 
       //load ememies
-      game.load.image("enemy-ghost",
-        "assets/img/monsters/ghost.PNG");
+      game.load.image("enemy-ghost", "assets/img/monsters/ghost.PNG");
 
       //load test map
       game.load.tilemap("test-map", "assets/maps/grassland.json", null, Phaser.Tilemap.TILED_JSON);

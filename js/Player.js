@@ -15,8 +15,6 @@ define([
     this.sprite.animations.add("walk-up", [13, 15]);
     this.sprite.animations.add("walk-left", [5, 7]);
     this.sprite.animations.add("walk-right", [9, 11]);
-    this.sprite.body.setRectangle(28, 16, 2, 32);
-    this.sprite.body.collideWorldBounds = true;
 
     this.handlePlayerClick = function () {
       if (this.moving === false) {
@@ -87,10 +85,8 @@ define([
       var graphics = game.add.graphics(0, 0);
       //TODO: look at tiles within player speed, not whole map
       self.map.moveLayer.getTiles(0, 0, self.map.moveLayer.width, self.map.moveLayer.height).forEach(function (tile) {
-        var tileX = helpers.toTile(tile.x);
-        var tileY = helpers.toTile(tile.y);
-        if (!self.isAtPos(tileX, tileY)) {
-          drawGoToShade(tileX, tileY, graphics);
+        if (!self.isAtPos(tile.x, tile.y)) {
+          drawGoToShade(tile.x, tile.y, graphics);
         }
       });
       self.map.easystar.calculate();
