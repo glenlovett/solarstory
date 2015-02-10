@@ -6,7 +6,7 @@ define([
   "underscore"
 ], function (globals, helpers, Enemy, Player, _) {
   "use strict";
-  return function(game) {
+  return function (game) {
     this.easystar = new EasyStar.js();
     this.moveLayer = undefined;
     this.sceneryLayer = undefined;
@@ -17,14 +17,14 @@ define([
     var player;
     var enemies = [];
 
-    this.create = function() {
+    this.create = function () {
       initMap();
       initPlayer();
       initEnemies();
       this.easystar.setGrid(this.moveGrid);
     };
 
-    this.update = function() {};
+    this.update = function () {};
 
     function initMap() {
       var map = game.add.tilemap("test-map");
@@ -40,24 +40,32 @@ define([
     }
 
     function initPlayer() {
-      player = new Player(4, 2, {speed:5}, self, "player", game);
+      player = new Player(4, 2, {
+        speed: 5
+      }, self, "player", game);
     }
 
     function initEnemies() {
-      var enemy = new Enemy(5, 3, {speed:2}, self, "enemy-ghost", game);
-      var enemy2 = new Enemy(3, 6, {speed:2}, self, "enemy-ghost", game);
+      var enemy = new Enemy(5, 3, {
+        speed: 2
+      }, self, "enemy-ghost", game);
+      var enemy2 = new Enemy(3, 6, {
+        speed: 2
+      }, self, "enemy-ghost", game);
       enemies.push(enemy);
       enemies.push(enemy2);
     }
 
     function enemyAt(x, y) {
-      return _.some(enemies, function(enemy){return enemy.isAtPos(x, y);});
+      return _.some(enemies, function (enemy) {
+        return enemy.isAtPos(x, y);
+      });
     }
 
     //TODO: block player movement while enemies move
     // and prevent enemy overlap
-    function moveEnemies(){
-      enemies.forEach(function(enemy){
+    function moveEnemies() {
+      enemies.forEach(function (enemy) {
         enemy.moveTowards(player.x, player.y);
       });
     }
@@ -95,7 +103,7 @@ define([
         }
         // determine if we have a legal move to present
         self.easystar.findPath(player.x, player.y, tileX, tileY,
-          function(path) {
+          function (path) {
             if (path !== null && path.length <= player.stats.speed + 1 && path.length > 0) {
               player.presentLegalMove(path);
             }

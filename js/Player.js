@@ -2,9 +2,9 @@ define([
   "Actor",
   "helpers",
   "globals"
-], function(Actor, helpers, globals) {
+], function (Actor, helpers, globals) {
   "use strict";
-  var Player = function(_x, _y, _stats, _map, spriteName, game) {
+  var Player = function (_x, _y, _stats, _map, spriteName, game) {
     Player.parentConstructor.call(this, _x, _y, _stats, _map, spriteName, game);
     var self = this;
     this.potentialMove = undefined;
@@ -18,7 +18,7 @@ define([
     this.sprite.body.setRectangle(28, 16, 2, 32);
     this.sprite.body.collideWorldBounds = true;
 
-    this.handlePlayerClick = function() {
+    this.handlePlayerClick = function () {
       if (this.moving === false) {
         if (this.moveGridGraphics === undefined) {
           this.moveGridGraphics = createMoveGrid();
@@ -36,7 +36,7 @@ define([
 
     this.sprite.events.onInputUp.add(this.handlePlayerClick, this);
 
-    this.presentLegalMove = function(path) {
+    this.presentLegalMove = function (path) {
       var destX = path[path.length - 1].x;
       var destY = path[path.length - 1].y;
       var g = game.add.graphics(0, 0);
@@ -59,7 +59,7 @@ define([
       };
     };
 
-    this.presentLegalAttack = function(x, y) {
+    this.presentLegalAttack = function (x, y) {
       var graphics = game.add.graphics(0, 0);
       helpers.drawShadedSquare(x, y, 0xC63333, graphics);
       this.potentialAttack = {
@@ -69,14 +69,14 @@ define([
       };
     };
 
-    this.removePotentialMove = function() {
+    this.removePotentialMove = function () {
       if (this.potentialMove !== undefined) {
         this.potentialMove.graphics.destroy();
         this.potentialMove = undefined;
       }
     };
 
-    this.removePotentialAttack = function() {
+    this.removePotentialAttack = function () {
       if (this.potentialAttack !== undefined) {
         this.potentialAttack.graphics.destroy();
         this.potentialAttack = undefined;
@@ -86,7 +86,7 @@ define([
     function createMoveGrid() {
       var graphics = game.add.graphics(0, 0);
       //TODO: look at tiles within player speed, not whole map
-      self.map.moveLayer.getTiles(0, 0, self.map.moveLayer.width, self.map.moveLayer.height).forEach(function(tile) {
+      self.map.moveLayer.getTiles(0, 0, self.map.moveLayer.width, self.map.moveLayer.height).forEach(function (tile) {
         var tileX = helpers.toTile(tile.x);
         var tileY = helpers.toTile(tile.y);
         if (!self.isAtPos(tileX, tileY)) {
@@ -98,7 +98,7 @@ define([
     }
 
     function drawGoToShade(x, y, graphics) {
-      self.map.easystar.findPath(self.x, self.y, x, y, function(path) {
+      self.map.easystar.findPath(self.x, self.y, x, y, function (path) {
         if (path !== null && path.length <= self.stats.speed + 1 && path.length > 0) {
           helpers.drawShadedSquare(x, y, 0x66A3C2, graphics);
         }
