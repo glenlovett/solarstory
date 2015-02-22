@@ -4,8 +4,8 @@ define([
   "globals"
 ], function (Actor, helpers, globals) {
   "use strict";
-  var Player = function Player(_x, _y, _stats, _map, spriteName, game) {
-    Player.parentConstructor.call(this, _x, _y, _stats, _map, spriteName, game);
+  var Player = function Player(x, y, stats, map, spriteName, game) {
+    Player.parentConstructor.call(this, x, y, stats, map, spriteName, game);
     var self = this;
     this.potentialMove = undefined;
     this.moveGridGraphics = undefined;

@@ -3,16 +3,16 @@ define([
   "helpers"
 ], function (globals, helpers) {
   "use strict";
-  var Actor = function (_x, _y, _stats, _map, spriteName, game) {
-    this.x = _x;
-    this.y = _y;
-    this.stats = _stats;
-    this.map = _map;
+  var Actor = function (x, y, stats, map, spriteName, game) {
+    this.x = x;
+    this.y = y;
+    this.stats = stats;
+    this.map = map;
     this.sprite = game.add.sprite(
-      _x * globals.TILE_SIZE,
-      _y * globals.TILE_SIZE,
+      x * globals.TILE_SIZE,
+      y * globals.TILE_SIZE,
       spriteName);
-    this.map.moveGrid[_y][_x] = 0;
+    this.map.moveGrid[y][x] = 0;
     this.map.easystar.setGrid(this.map.moveGrid);
     this.moving = false;
     this.hpText = undefined;
@@ -37,12 +37,12 @@ define([
     };
   };
 
-  Actor.prototype.setPos = function (_x, _y) {
-    this.x = _x;
-    this.y = _y;
-    this.sprite.x = _x * globals.TILE_SIZE;
-    this.sprite.y = _y * globals.TILE_SIZE;
-    this.map.moveGrid[_y][_x] = 0;
+  Actor.prototype.setPos = function (x, y) {
+    this.x = x;
+    this.y = y;
+    this.sprite.x = x * globals.TILE_SIZE;
+    this.sprite.y = y * globals.TILE_SIZE;
+    this.map.moveGrid[y][x] = 0;
     this.map.easystar.setGrid(this.map.moveGrid);
   };
 
