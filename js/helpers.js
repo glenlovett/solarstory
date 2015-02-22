@@ -22,6 +22,22 @@ define([
     return x / globals.TILE_SIZE;
   };
 
+  helpers.distanceBetween = function (x1, y1, x2, y2) {
+    return Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
+  };
+
+  helpers.getDirObject = function (x1, y1, x2, y2) {
+    if (x1 > x2) {
+      return globals.DIR_MAP.left;
+    } else if (x1 < x2) {
+      return globals.DIR_MAP.right;
+    } else if (y1 > y2) {
+      return globals.DIR_MAP.up;
+    } else if (y1 < y2) {
+      return globals.DIR_MAP.down;
+    }
+  };
+
   helpers.generateGridAndIndices = function (layer) {
     var grid = [];
     var rowIndex = 0;
@@ -50,8 +66,8 @@ define([
     path.forEach(function (point) {
       var x = helpers.toPixels(point.x) + globals.TILE_SIZE / 2;
       var y = helpers.toPixels(point.y) + globals.TILE_SIZE / 2;
-      g.lineTo(x,y);
-      g.moveTo(x,y);
+      g.lineTo(x, y);
+      g.moveTo(x, y);
     });
     g.moveTo(0, 0);
   };

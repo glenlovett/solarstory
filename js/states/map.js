@@ -48,6 +48,12 @@ define([
       });
     };
 
+    this.moveEnemies = function () {
+      enemies.forEach(function (enemy) {
+        enemy.moveTowards(player.x, player.y);
+      });
+    };
+
     function initMap() {
       var map = game.add.tilemap("test-map");
       self.moveLayer = map.createLayer("move");
@@ -63,16 +69,21 @@ define([
 
     function initPlayer() {
       player = new Player(4, 2, {
-        speed: 5
+        speed: 5,
+        attack: 1
       }, self, "player", game);
     }
 
     function initEnemies() {
       var enemy = new Enemy(5, 3, {
-        speed: 2
+        speed: 2,
+        maxHp: 2,
+        currentHp: 2
       }, self, "enemy-ghost", game);
       var enemy2 = new Enemy(3, 6, {
-        speed: 2
+        speed: 2,
+        maxHp: 2,
+        currentHp: 2
       }, self, "enemy-ghost", game);
       enemies.push(enemy);
       enemies.push(enemy2);
@@ -84,12 +95,6 @@ define([
       });
     }
 
-    function moveEnemies() {
-      enemies.forEach(function (enemy) {
-        enemy.moveTowards(player.x, player.y);
-      });
-    }
-
     function handleClick() {
       var x = Math.floor(helpers.toTile(game.input.x));
       var y = Math.floor(helpers.toTile(game.input.y));
@@ -98,11 +103,11 @@ define([
         if (attackConfirmed(x, y)) {
           player.attack(x, y);
         } else {
-          handlePresentAttack(x, y);
+          player.presentPotentialAttack(x, y);
         }
       } else if (moveGridVisible()) {
         if (moveConfirmed(x, y)) {
-          handleMove(x, y);
+          player.move(player.potentialMove.path);
         } else {
           handlePresentMove(x, y);
         }
@@ -125,17 +130,6 @@ define([
 
     function moveConfirmed(x, y) {
       return player.potentialMove && x === player.potentialMove.x && y === player.potentialMove.y;
-    }
-
-    function handleMove(x, y) {
-      player.animateMoveOnPath(player.potentialMove.path, moveEnemies, self);
-      player.moveGridGraphics.destroy();
-      player.potentialMove.graphics.destroy();
-      player.moveGridGraphics = player.potentialMove = undefined;
-    }
-
-    function handlePresentAttack(x, y) {
-      player.presentPotentialAttack(x, y);
     }
 
     function handlePresentMove(x, y) {

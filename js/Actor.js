@@ -15,6 +15,26 @@ define([
     this.map.moveGrid[_y][_x] = 0;
     this.map.easystar.setGrid(this.map.moveGrid);
     this.moving = false;
+    this.hpText = undefined;
+
+    this.showHpText = function () {
+      var hpTextContent = this.stats.currentHp + "/" + this.stats.maxHp;
+      var hpTextStyle = {
+        font: "16px",
+        width: 32,
+        align: "center"
+      };
+      this.hpText = game.add.text(
+        this.sprite.x + globals.TILE_SIZE / 2,
+        this.sprite.y + globals.TILE_SIZE,
+        hpTextContent,
+        hpTextStyle);
+      this.hpText.anchor.set(0.5);
+    };
+
+    this.hideHpText = function () {
+      if (this.hpText) this.hpText.destroy();
+    };
   };
 
   Actor.prototype.setPos = function (_x, _y) {

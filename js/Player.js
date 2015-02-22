@@ -52,20 +52,30 @@ define([
     };
 
     this.presentPotentialAttack = function (x, y) {
+      var enemy = this.map.getEnemyAt(x, y);
+      var dirObj = helpers.getDirObject(this.x, this.y, x, y);
       var graphics = game.add.graphics(0, 0);
+
+      this.sprite.animations.play("walk-" + dirObj.string);
+      this.sprite.animations.stop();
+      this.facing = dirObj.number;
+
+      enemy.showHpText();
+
       this.removePotentialMove();
       this.removePotentialAttack();
       helpers.drawShadedSquare(x, y, 0xC63333, graphics);
       this.potentialAttack = {
         x: x,
         y: y,
-        graphics: graphics
+        graphics: graphics,
+        enemy: enemy
       };
     };
 
     this.moveGridVisible = function () {
       return this.moveGridGraphics && this.moveGridGraphics.visible;
-    }
+    };
 
     this.removePotentialMove = function () {
       if (this.moveGridVisible()) {
@@ -79,19 +89,30 @@ define([
 
     this.removePotentialAttack = function () {
       if (this.potentialAttack !== undefined) {
+        this.potentialAttack.enemy.hideHpText();
         this.potentialAttack.graphics.destroy();
         this.potentialAttack = undefined;
       }
     };
 
-    this.attack = function (x, y) {
-      this.removePotentialAttack();
-      var actor = this.map.getEnemyAt(x, y);
-      //TODO: turn self to face actor
-      //TODO: update UI to show damage
-      //TODO: apply damage from actor1 to actor
-      //TODO: destroy actor only if damage dealt reduces HP to 0
-      actor.kill();
+    this.attack = function () {
+      var target = this.potentialAttack.enemy;
+      target.stats.currentHp -= this.stats.attack;
+      if (target.stats.currentHp <= 0) {
+        target.kill();
+        //maybe do this regardless and remove else block?
+        this.removePotentialAttack();
+      } else {
+        target.hideHpText();
+        target.showHpText();
+      }
+    };
+
+    this.move = function (path) {
+      this.animateMoveOnPath(path, this.map.moveEnemies, this.map);
+      this.moveGridGraphics.destroy();
+      this.potentialMove.graphics.destroy();
+      this.moveGridGraphics = this.potentialMove = undefined;
     };
 
     function createMoveGrid() {
