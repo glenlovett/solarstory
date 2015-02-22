@@ -4,7 +4,7 @@ define([
   "globals"
 ], function (Actor, helpers, globals) {
   "use strict";
-  var Player = function Player (_x, _y, _stats, _map, spriteName, game) {
+  var Player = function Player(_x, _y, _stats, _map, spriteName, game) {
     Player.parentConstructor.call(this, _x, _y, _stats, _map, spriteName, game);
     var self = this;
     this.potentialMove = undefined;
@@ -17,21 +17,18 @@ define([
     this.sprite.animations.add("walk-right", [9, 11]);
 
     this.handlePlayerClick = function () {
-      if (this.moving === false) {
-        if (this.moveGridGraphics && this.moveGridGraphics.visible) {
-          this.moveGridGraphics.visible = false;
-        } else {
-          this.moveGridGraphics = createMoveGrid();
-          this.removePotentialAttack();
-        }
+      if (this.moving) return;
+      if (this.moveGridVisible()) {
         this.removePotentialMove();
+      } else {
         relayer();
+        this.moveGridGraphics = createMoveGrid();
       }
     };
 
     this.sprite.events.onInputUp.add(this.handlePlayerClick, this);
 
-    this.presentLegalMove = function (path) {
+    this.presentPotentialMove = function (path) {
       var destX = path[path.length - 1].x;
       var destY = path[path.length - 1].y;
       var g = game.add.graphics(0, 0);
@@ -54,8 +51,10 @@ define([
       };
     };
 
-    this.presentLegalAttack = function (x, y) {
+    this.presentPotentialAttack = function (x, y) {
       var graphics = game.add.graphics(0, 0);
+      this.removePotentialMove();
+      this.removePotentialAttack();
       helpers.drawShadedSquare(x, y, 0xC63333, graphics);
       this.potentialAttack = {
         x: x,
@@ -64,7 +63,14 @@ define([
       };
     };
 
+    this.moveGridVisible = function () {
+      return this.moveGridGraphics && this.moveGridGraphics.visible;
+    }
+
     this.removePotentialMove = function () {
+      if (this.moveGridVisible()) {
+        this.moveGridGraphics.visible = false;
+      }
       if (this.potentialMove !== undefined) {
         this.potentialMove.graphics.destroy();
         this.potentialMove = undefined;
@@ -78,6 +84,16 @@ define([
       }
     };
 
+    this.attack = function (x, y) {
+      this.removePotentialAttack();
+      var actor = this.map.getEnemyAt(x, y);
+      //TODO: turn self to face actor
+      //TODO: update UI to show damage
+      //TODO: apply damage from actor1 to actor
+      //TODO: destroy actor only if damage dealt reduces HP to 0
+      actor.kill();
+    };
+
     function createMoveGrid() {
       var graphics = game.add.graphics(0, 0);
       var speedInPixels = helpers.toPixels(self.stats.speed + 1);
@@ -87,6 +103,7 @@ define([
       var y1 = Math.max(0, yInPixels - speedInPixels);
       var x2 = Math.min(self.map.moveLayer.width, xInPixels + speedInPixels);
       var y2 = Math.min(self.map.moveLayer.width, yInPixels + speedInPixels);
+      self.removePotentialAttack();
       self.map.moveLayer.getTiles(x1, y1, x2, y2).forEach(function (tile) {
         if (!self.isAtPos(tile.x, tile.y)) {
           drawGoToShade(tile.x, tile.y, graphics);
@@ -105,8 +122,8 @@ define([
     }
 
     function relayer() {
-      //TODO: make this not have to be called. it obscures the
-      //hidden parts of the moveGridGraphics :(
+      //TODO: order this so that the player appears above the movegrid
+      // but below the highSceneryLayer
       self.map.sceneryLayer.bringToTop();
       self.sprite.bringToTop();
       self.map.highSceneryLayer.bringToTop();

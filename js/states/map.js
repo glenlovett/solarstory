@@ -58,7 +58,7 @@ define([
       self.moveGrid = helpers.generateGridAndIndices(self.moveLayer);
       self.easystar.setGrid(self.moveGrid);
       self.easystar.setAcceptableTiles([1]);
-      self.moveLayer.events.onInputUp.add(handleMapClick);
+      self.moveLayer.events.onInputUp.add(handleClick);
     }
 
     function initPlayer() {
@@ -84,54 +84,72 @@ define([
       });
     }
 
-    //TODO: block player movement while enemies move
-    // and prevent enemy overlap
     function moveEnemies() {
       enemies.forEach(function (enemy) {
         enemy.moveTowards(player.x, player.y);
       });
     }
 
-    function handleMapClick() {
-      var playerMoveGridVisible = (
-        player.moveGridGraphics !== undefined &&
-        player.moveGridGraphics.visible);
-      var tileX = Math.floor(helpers.toTile(game.input.x));
-      var tileY = Math.floor(helpers.toTile(game.input.y));
-      if (!player.moving && player.potentialAttack === undefined && enemyAt(tileX, tileY) && player.withinAttackRange(tileX, tileY)) {
-        if (playerMoveGridVisible) {
-          player.moveGridGraphics.visible = false;
-        }
-        player.removePotentialMove();
-        player.presentLegalAttack(tileX, tileY);
-      } else if (!player.moving && enemyAt(tileX, tileY) && player.withinAttackRange(tileX, tileY)) {
-        if (tileX === player.potentialAttack.x && tileY === player.potentialAttack.y) {
-          player.removePotentialAttack();
-          player.attack(tileX, tileY);
+    function handleClick() {
+      var x = Math.floor(helpers.toTile(game.input.x));
+      var y = Math.floor(helpers.toTile(game.input.y));
+
+      if (closeEnemyClicked(x, y)) {
+        if (attackConfirmed(x, y)) {
+          player.attack(x, y);
         } else {
-          player.removePotentialAttack();
-          player.presentLegalAttack(tileX, tileY);
+          handlePresentAttack(x, y);
         }
-      } else if (playerMoveGridVisible) {
-        if (player.potentialMove !== undefined) {
-          if (tileX === player.potentialMove.x && tileY === player.potentialMove.y) {
-            //legal move selected. move along path and return true
-            player.animateMoveOnPath(player.potentialMove.path, moveEnemies, self);
-            player.moveGridGraphics.destroy();
-            player.potentialMove.graphics.destroy();
-            player.moveGridGraphics = player.potentialMove = undefined;
-            return;
-          }
+      } else if (moveGridVisible()) {
+        if (moveConfirmed(x, y)) {
+          handleMove(x, y);
+        } else {
+          handlePresentMove(x, y);
         }
-        // determine if we have a legal move to present
-        self.easystar.findPath(player.x, player.y, tileX, tileY,
-          function (path) {
-            if (path !== null && path.length <= player.stats.speed + 1 && path.length > 0) {
-              player.presentLegalMove(path);
-            }
-          });
-        self.easystar.calculate();
+      } else {
+        player.removePotentialAttack();
       }
     }
+
+    function closeEnemyClicked(x, y) {
+      return !player.moving && enemyAt(x, y) && player.withinAttackRange(x, y);
+    }
+
+    function moveGridVisible() {
+      return player.moveGridGraphics && player.moveGridGraphics.visible;
+    }
+
+    function attackConfirmed(x, y) {
+      return player.potentialAttack && x === player.potentialAttack.x && y === player.potentialAttack.y;
+    }
+
+    function moveConfirmed(x, y) {
+      return player.potentialMove && x === player.potentialMove.x && y === player.potentialMove.y;
+    }
+
+    function handleMove(x, y) {
+      player.animateMoveOnPath(player.potentialMove.path, moveEnemies, self);
+      player.moveGridGraphics.destroy();
+      player.potentialMove.graphics.destroy();
+      player.moveGridGraphics = player.potentialMove = undefined;
+    }
+
+    function handlePresentAttack(x, y) {
+      player.presentPotentialAttack(x, y);
+    }
+
+    function handlePresentMove(x, y) {
+      // determine if we have a legal move to present
+      self.easystar.findPath(player.x, player.y, x, y,
+        function (path) {
+          if (path !== null && path.length <= player.stats.speed + 1 && path.length > 0) {
+            player.presentPotentialMove(path);
+          } else {
+            player.removePotentialMove();
+          }
+        });
+      self.easystar.calculate();
+    }
+
   };
 });
