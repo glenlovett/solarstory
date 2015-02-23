@@ -16,7 +16,7 @@ require([
   "map",
   "Phaser",
   "EasyStar"
-], function(boot, preloader, title, map, Phaser) {
+], function (boot, preloader, title, map, Phaser) {
   "use strict";
   var game = new Phaser.Game(320, 320, Phaser.AUTO, "gameDiv");
   game.state.add("boot", boot, true);

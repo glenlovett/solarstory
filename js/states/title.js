@@ -1,10 +1,10 @@
-define(function() {
+define(function () {
   "use strict";
-  return function(game) {
-    this.preload = function() {
+  return function (game) {
+    this.preload = function () {
       game.add.sprite(0, 0, "bg-preloader");
     };
-    this.create = function() {
+    this.create = function () {
       game.add.sprite(game.world.centerX - 138, 20, "title");
       game.add.button(game.world.centerX - 68, 160, "title-buttons",
         startGame,
